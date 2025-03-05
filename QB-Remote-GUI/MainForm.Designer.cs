@@ -91,8 +91,8 @@
             contextMenuPeerListView = new ContextMenuStrip(components);
             tsConfigurePeerColumns = new ToolStripMenuItem();
             filesTab = new TabPage();
-            fileTreeView = new TreeView();
             timerSync = new System.Windows.Forms.Timer(components);
+            fileListView = new ListView();
             menuStrip.SuspendLayout();
             toolStrip.SuspendLayout();
             statusStrip.SuspendLayout();
@@ -499,26 +499,27 @@
             // 
             // filesTab
             // 
-            filesTab.Controls.Add(fileTreeView);
+            filesTab.Controls.Add(fileListView);
             filesTab.Location = new Point(4, 26);
             filesTab.Name = "filesTab";
             filesTab.Size = new Size(1039, 341);
             filesTab.TabIndex = 3;
             filesTab.Text = "Files";
             // 
-            // fileTreeView
-            // 
-            fileTreeView.Dock = DockStyle.Fill;
-            fileTreeView.Location = new Point(0, 0);
-            fileTreeView.Name = "fileTreeView";
-            fileTreeView.Size = new Size(1039, 341);
-            fileTreeView.TabIndex = 0;
-            // 
             // timerSync
             // 
             timerSync.Enabled = true;
             timerSync.Interval = 5000;
             timerSync.Tick += timerSync_Tick;
+            // 
+            // fileListView
+            // 
+            fileListView.Dock = DockStyle.Fill;
+            fileListView.Location = new Point(0, 0);
+            fileListView.Name = "fileListView";
+            fileListView.Size = new Size(1039, 341);
+            fileListView.TabIndex = 0;
+            fileListView.UseCompatibleStateImageBehavior = false;
             // 
             // MainForm
             // 
@@ -599,7 +600,6 @@
         private ColumnHeader downloadSpeedColumn2;
         private ColumnHeader uploadSpeedColumn2;
         private TabPage filesTab;
-        private TreeView fileTreeView;
 
         #endregion
         private ToolStripMenuItem menuitemConnect;
@@ -621,5 +621,6 @@
         private Components.TorrentPieceView torrentPieceView1;
         private ContextMenuStrip contextMenuPeerListView;
         private ToolStripMenuItem tsConfigurePeerColumns;
+        private ListView fileListView;
     }
 }

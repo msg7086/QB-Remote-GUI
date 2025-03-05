@@ -2,6 +2,7 @@ using QB.Remote.API.Clients;
 using QB.Remote.API.Interfaces;
 using QB.Remote.API.Models.Sync;
 using QB.Remote.API.Models.Torrents;
+using QB.Remote.GUI.Models;
 using QB_Remote_GUI.Forms;
 using QB_Remote_GUI.Models;
 using QB_Remote_GUI.Views;
@@ -30,6 +31,7 @@ namespace QB_Remote_GUI
         // View managers
         private TorrentListViewManager? _torrentListViewManager;
         private PeerListViewManager? _peerListViewManager;
+        private FileListViewManager? _fileListViewManager;
 
         // Column configuration
         private readonly string _torrentColumnsConfigPath;
@@ -105,6 +107,7 @@ namespace QB_Remote_GUI
             // Initialize view managers
             _torrentListViewManager = new TorrentListViewManager(torrentListView, imgTorrent);
             _peerListViewManager = new PeerListViewManager(peerListView);
+            _fileListViewManager = new FileListViewManager(fileListView);
 
             tsConfigureTorrentColumns.Text = lang.GetTranslation("Setup columns") + "...";
             tsConfigurePeerColumns.Text = lang.GetTranslation("Setup columns") + "...";
@@ -121,30 +124,31 @@ namespace QB_Remote_GUI
             statusColumn2.Width = 100;
 
             // Set up peer list view
-            peerListView.View = View.Details;
-            peerListView.FullRowSelect = true;
-            peerListView.GridLines = true;
+            //peerListView.View = View.Details;
+            //peerListView.FullRowSelect = true;
+            //peerListView.GridLines = true;
 
-            ipColumn.Text = "IP";
-            clientColumn.Text = lang.GetTranslation("Client");
-            flagsColumn.Text = lang.GetTranslation("Flags");
-            progressColumn2.Text = lang.GetTranslation("Progress");
-            downloadSpeedColumn2.Text = lang.GetTranslation("Download speed");
-            uploadSpeedColumn2.Text = lang.GetTranslation("Upload speed");
+            //ipColumn.Text = "IP";
+            //clientColumn.Text = lang.GetTranslation("Client");
+            //flagsColumn.Text = lang.GetTranslation("Flags");
+            //progressColumn2.Text = lang.GetTranslation("Progress");
+            //downloadSpeedColumn2.Text = lang.GetTranslation("Download speed");
+            //uploadSpeedColumn2.Text = lang.GetTranslation("Upload speed");
 
-            ipColumn.Width = 150;
-            clientColumn.Width = 150;
-            flagsColumn.Width = 100;
-            progressColumn2.Width = 100;
-            downloadSpeedColumn2.Width = 100;
-            uploadSpeedColumn2.Width = 100;
+            //ipColumn.Width = 150;
+            //clientColumn.Width = 150;
+            //flagsColumn.Width = 100;
+            //progressColumn2.Width = 100;
+            //downloadSpeedColumn2.Width = 100;
+            //uploadSpeedColumn2.Width = 100;
 
             // Set up file tree view
-            fileTreeView.CheckBoxes = true;
+            //fileListView.CheckBoxes = true;
 
             torrentListView.SetDoubleBuffered();
             trackerListView.SetDoubleBuffered();
             peerListView.SetDoubleBuffered();
+            fileListView.SetDoubleBuffered();
             torrentListView.ListViewItemSorter = new ListViewItemComparer(_sortColumn, _sortAscending);
             torrentListView.Sort();
             UpdateControlState();
@@ -556,16 +560,7 @@ namespace QB_Remote_GUI
 
                     // Update files
                     var files = await _client.GetTorrentContentsAsync(hash);
-                    fileTreeView.BeginUpdate();
-                    fileTreeView.Nodes.Clear();
-                    foreach (var file in files)
-                    {
-                        var path = file.Name.Split('/');
-                        var node = GetOrCreateNode(fileTreeView.Nodes, path);
-                        node.Tag = file;
-                        node.Checked = file.Priority > 0;
-                    }
-                    fileTreeView.EndUpdate();
+                    _fileListViewManager?.UpdateFileList(files);
                 }
                 catch (Exception ex)
                 {
@@ -577,7 +572,7 @@ namespace QB_Remote_GUI
                 _selectedTorrent = null;
                 trackerListView.Items.Clear();
                 peerListView.Items.Clear();
-                fileTreeView.Nodes.Clear();
+                _fileListViewManager?.ClearFileList();
             }
         }
 
