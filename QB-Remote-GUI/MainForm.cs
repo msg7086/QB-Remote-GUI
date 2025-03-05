@@ -4,6 +4,7 @@ using QB.Remote.API.Models.Sync;
 using QB.Remote.API.Models.Torrents;
 using QB_Remote_GUI.Forms;
 using QB_Remote_GUI.Models;
+using QB_Remote_GUI.Views;
 using System.Text.RegularExpressions;
 
 namespace QB_Remote_GUI
@@ -25,6 +26,10 @@ namespace QB_Remote_GUI
         // Connection management
         private readonly string _connectionsPath;
         private readonly List<ConnectionProfile> _connections = new();
+
+        // View managers
+        private TorrentListViewManager? _torrentListViewManager;
+        private PeerListViewManager? _peerListViewManager;
 
         // Column configuration
         private readonly string _torrentColumnsConfigPath;
@@ -97,8 +102,10 @@ namespace QB_Remote_GUI
             stateTreeView.Nodes.Add("error", lang.GetTranslation("Error"), "tr_t_error", "tr_t_error");
             stateTreeView.Nodes.Add("waiting", lang.GetTranslation("Waiting"), "tr_queue", "tr_queue");
 
-            this.InitTorrentListView();
-            this.InitPeerListView();
+            // Initialize view managers
+            _torrentListViewManager = new TorrentListViewManager(torrentListView, imgTorrent);
+            _peerListViewManager = new PeerListViewManager(peerListView);
+
             tsConfigureTorrentColumns.Text = lang.GetTranslation("Setup columns") + "...";
             tsConfigurePeerColumns.Text = lang.GetTranslation("Setup columns") + "...";
 
@@ -460,7 +467,7 @@ namespace QB_Remote_GUI
         private void UpdateTorrentList()
         {
             var filteredTorrents = FilterTorrents();
-            MainFormHelper.UpdateTorrentsToListView(filteredTorrents, torrentListView, imgTorrent);
+            _torrentListViewManager?.UpdateTorrents(filteredTorrents);
         }
 
         private Dictionary<string, TorrentInfo> FilterTorrents()
@@ -786,14 +793,11 @@ namespace QB_Remote_GUI
 
         private void ConfigureColumns(object sender, EventArgs e)
         {
-            using var form = new ListViewColumnSelector(torrentListView, _torrentColumnConfig);
-            form.Text = LanguageLoader.Instance.GetTranslation("Columns setup") + " - Torrents";
+            using var form = new ListViewColumnSelector(torrentListView, _torrentListViewManager?.GetColumnConfig());
             if (form.ShowDialog() == DialogResult.OK)
             {
-                _torrentColumnConfig = form.SelectedColumns;
-                SaveTorrentColumnConfig();
-                this.ApplyTorrentColumnConfig();
-                UpdateTorrentList();
+                _torrentListViewManager?.SetColumnConfig(form.SelectedColumns);
+                _torrentListViewManager?.SaveColumnConfig();
             }
         }
 
@@ -813,16 +817,13 @@ namespace QB_Remote_GUI
             await SyncData();
         }
 
-        private async void tsConfigurePeerColumns_Click(object sender, EventArgs e)
+        private void tsConfigurePeerColumns_Click(object sender, EventArgs e)
         {
-            using var form = new ListViewColumnSelector(peerListView, _peerColumnConfig);
-            form.Text = LanguageLoader.Instance.GetTranslation("Columns setup") + " - Peers";
+            using var form = new ListViewColumnSelector(peerListView, _peerListViewManager?.GetColumnConfig());
             if (form.ShowDialog() == DialogResult.OK)
             {
-                _peerColumnConfig = form.SelectedColumns;
-                SavePeerColumnConfig();
-                this.ApplyPeerColumnConfig();
-                await UpdatePeerList();
+                _peerListViewManager?.SetColumnConfig(form.SelectedColumns);
+                _peerListViewManager?.SaveColumnConfig();
             }
         }
 
@@ -861,7 +862,7 @@ namespace QB_Remote_GUI
         private async Task UpdatePeerList()
         {
             if (_selectedTorrent == null || _client == null) return;
-            
+
             try
             {
                 var peerData = await _client.GetPeersDataAsync(_selectedTorrent.Hash, _lastPeerRid);
@@ -898,22 +899,22 @@ namespace QB_Remote_GUI
                 }
 
                 // Update the ListView
-                MainFormHelper.UpdatePeersToListView(_peers.Values, peerListView);
+                _peerListViewManager?.UpdatePeers(_peers.Values);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"获取对等点数据失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"获取对等节点信息失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void peerListView_ColumnWidthChanged(object sender, ColumnWidthChangedEventArgs e)
         {
             var column = peerListView.Columns[e.ColumnIndex];
-            var columnInfo = _peerColumnConfig.FirstOrDefault(c => c.Name == column.Name);
+            var columnInfo = _peerListViewManager?.GetColumnConfig().FirstOrDefault(c => c.Name == column.Name);
             if (columnInfo != null)
             {
                 columnInfo.Width = column.Width;
-                SavePeerColumnConfig();
+                _peerListViewManager?.SaveColumnConfig();
             }
         }
     }
