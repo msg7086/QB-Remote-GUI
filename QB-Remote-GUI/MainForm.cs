@@ -13,7 +13,6 @@ namespace QB_Remote_GUI
     public partial class MainForm : Form
     {
         private IQBittorrentClient? _client;
-        private System.Windows.Forms.Timer _syncTimer;
         private int _lastRid;
         private Dictionary<string, TorrentInfo> _torrents = new();
         private TorrentInfo? _selectedTorrent;
@@ -29,15 +28,13 @@ namespace QB_Remote_GUI
         private readonly List<ConnectionProfile> _connections = new();
 
         // View managers
-        private TorrentListViewManager? _torrentListViewManager;
-        private PeerListViewManager? _peerListViewManager;
-        private FileListViewManager? _fileListViewManager;
+        private readonly TorrentListViewManager _torrentListViewManager;
+        private readonly PeerListViewManager _peerListViewManager;
+        private readonly FileListViewManager _fileListViewManager;
 
         // Column configuration
         private readonly string _torrentColumnsConfigPath;
         private readonly string _peerColumnsConfigPath;
-        internal List<ColumnInfo> _torrentColumnConfig;
-        internal List<ColumnInfo> _peerColumnConfig;
 
         public MainForm()
         {
@@ -58,6 +55,12 @@ namespace QB_Remote_GUI
                 "peer_columns.json");
 
             InitializeComponent();
+
+            // Initialize view managers
+            _torrentListViewManager = new TorrentListViewManager(torrentListView);
+            _peerListViewManager = new PeerListViewManager(peerListView);
+            _fileListViewManager = new FileListViewManager(fileListView, imgFiles);
+
             InitializeControls();
             LoadConnections();
         }
@@ -101,11 +104,6 @@ namespace QB_Remote_GUI
             stateTreeView.Nodes.Add("stopped", lang.GetTranslation("Stopped"), "tr_t_pause", "tr_t_pause");
             stateTreeView.Nodes.Add("error", lang.GetTranslation("Error"), "tr_t_error", "tr_t_error");
             stateTreeView.Nodes.Add("waiting", lang.GetTranslation("Waiting"), "tr_queue", "tr_queue");
-
-            // Initialize view managers
-            _torrentListViewManager = new TorrentListViewManager(torrentListView, imgTorrent);
-            _peerListViewManager = new PeerListViewManager(peerListView);
-            _fileListViewManager = new FileListViewManager(fileListView, imgFiles);
 
             tsConfigureTorrentColumns.Text = lang.GetTranslation("Setup columns") + "...";
             tsConfigurePeerColumns.Text = lang.GetTranslation("Setup columns") + "...";
@@ -310,6 +308,11 @@ namespace QB_Remote_GUI
         {
             if (_client == null) return;
 
+            await StartTorrents();
+        }
+
+        private async Task StartTorrents()
+        {
             var selectedHashes = GetSelectedTorrentHashes();
             if (selectedHashes.Any())
             {
@@ -514,8 +517,6 @@ namespace QB_Remote_GUI
             tsbStartTorrent.Enabled = _isConnected && hasSelection;
             tsbPauseTorrent.Enabled = _isConnected && hasSelection;
             tsbDeleteTorrent.Enabled = _isConnected && hasSelection;
-
-            //tabControl.Enabled = _isConnected && hasSelection;
         }
 
         private async void TorrentListView_SelectedIndexChanged(object sender, EventArgs e)
@@ -578,31 +579,9 @@ namespace QB_Remote_GUI
             UpdateTorrentList();
         }
 
-        private TreeNode GetOrCreateNode(TreeNodeCollection nodes, string[] path, int index = 0)
-        {
-            if (index >= path.Length)
-                return null;
-
-            var nodeName = path[index];
-            var node = nodes.Cast<TreeNode>().FirstOrDefault(n => n.Text == nodeName);
-
-            if (node == null)
-            {
-                node = new TreeNode(nodeName);
-                nodes.Add(node);
-            }
-
-            if (index < path.Length - 1)
-            {
-                return GetOrCreateNode(node.Nodes, path, index + 1);
-            }
-
-            return node;
-        }
-
         private static string FormatSize(long bytes)
         {
-            string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+            string[] sizes = ["B", "KB", "MB", "GB", "TB"];
             int order = 0;
             double size = bytes;
 
@@ -649,11 +628,6 @@ namespace QB_Remote_GUI
             }
 
             base.OnFormClosing(e);
-        }
-
-        private void exitMenuItem_Click(object sender, EventArgs e)
-        {
-            Close();
         }
 
         private async void ManageConnections(object sender, EventArgs e)
@@ -753,32 +727,26 @@ namespace QB_Remote_GUI
 
         private void ConfigureTorrentListViewColumns(object sender, EventArgs e)
         {
-            using var form = new ListViewColumnSelector(torrentListView, _torrentListViewManager?.GetColumnConfig());
-            if (form.ShowDialog() == DialogResult.OK)
-            {
-                _torrentListViewManager?.SetColumnConfig(form.SelectedColumns);
-                _torrentListViewManager?.SaveColumnConfig();
-            }
+            using var form = new ListViewColumnSelector(torrentListView, _torrentListViewManager.GetColumnConfig());
+            if (form.ShowDialog() != DialogResult.OK) return;
+            _torrentListViewManager?.SetColumnConfig(form.SelectedColumns);
+            _torrentListViewManager?.SaveColumnConfig();
         }
 
         private void ConfigurePeerListViewColumns(object sender, EventArgs e)
         {
-            using var form = new ListViewColumnSelector(peerListView, _peerListViewManager?.GetColumnConfig());
-            if (form.ShowDialog() == DialogResult.OK)
-            {
-                _peerListViewManager?.SetColumnConfig(form.SelectedColumns);
-                _peerListViewManager?.SaveColumnConfig();
-            }
+            using var form = new ListViewColumnSelector(peerListView, _peerListViewManager.GetColumnConfig());
+            if (form.ShowDialog() != DialogResult.OK) return;
+            _peerListViewManager?.SetColumnConfig(form.SelectedColumns);
+            _peerListViewManager?.SaveColumnConfig();
         }
 
         private void ConfigureFileListViewColumns(object sender, EventArgs e)
         {
-            using var form = new ListViewColumnSelector(fileListView, _fileListViewManager?.GetColumnConfig());
-            if (form.ShowDialog() == DialogResult.OK)
-            {
-                _fileListViewManager?.SetColumnConfig(form.SelectedColumns);
-                _fileListViewManager?.SaveColumnConfig();
-            }
+            using var form = new ListViewColumnSelector(fileListView, _fileListViewManager.GetColumnConfig());
+            if (form.ShowDialog() != DialogResult.OK) return;
+            _fileListViewManager?.SetColumnConfig(form.SelectedColumns);
+            _fileListViewManager?.SaveColumnConfig();
         }
 
         private async void timerSync_Tick(object sender, EventArgs e)
@@ -789,6 +757,7 @@ namespace QB_Remote_GUI
         private async Task UpdatePeerList()
         {
             if (_selectedTorrent == null || _client == null) return;
+            if (_selectedTorrent.Hash == null) return;
 
             try
             {
