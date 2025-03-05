@@ -29,6 +29,8 @@ namespace QB_Remote_GUI.Views
 
             LoadOrInitializeColumnConfig();
             ApplyColumnConfig();
+
+            _torrentListView.ColumnWidthChanged += TorrentListView_ColumnWidthChanged;
         }
 
         private void LoadOrInitializeColumnConfig()
@@ -270,6 +272,17 @@ namespace QB_Remote_GUI.Views
                         item.Selected = true;
                     }
                 }
+            }
+        }
+
+        private void TorrentListView_ColumnWidthChanged(object sender, ColumnWidthChangedEventArgs e)
+        {
+            var column = _torrentListView.Columns[e.ColumnIndex];
+            var columnInfo = _columnConfig.FirstOrDefault(c => c.Name == column.Name);
+            if (columnInfo != null)
+            {
+                columnInfo.Width = column.Width;
+                SaveColumnConfig();
             }
         }
     }

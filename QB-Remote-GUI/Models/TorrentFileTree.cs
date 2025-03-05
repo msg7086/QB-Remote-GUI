@@ -17,6 +17,8 @@ public class TorrentFileTree
     public TorrentFileTree? Parent { get; set; }
     public int IndentCount { get; set; }
     public bool IsExpanded { get; set; } = false;
+    public int Index { get; set; } = -1;  // -1 for folders
+    public int[] PieceRange { get; set; } = Array.Empty<int>();
 
     public CheckBoxState CachedCheckBoxState { get; set; } = CheckBoxState.UncheckedNormal;
 
@@ -53,6 +55,8 @@ public class TorrentFileTree
                         node.Priority = file.Priority;
                         node.IsSeed = file.IsSeed;
                         node.Availability = file.Availability;
+                        node.Index = file.Index;
+                        node.PieceRange = file.PieceRange;
                         node.Parent = parent;
                     }
 

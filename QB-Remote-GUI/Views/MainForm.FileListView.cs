@@ -4,6 +4,8 @@ using System.Windows.Forms.VisualStyles;
 using QB.Remote.API.Models.Torrents;
 using QB.Remote.GUI.Models;
 using QB_Remote_GUI.Utils;
+using QB_Remote_GUI.Forms;
+using QB_Remote_GUI.Models;
 
 namespace QB_Remote_GUI.Views;
 
@@ -13,10 +15,18 @@ public class FileListViewManager
     private List<TorrentFileTree> _fileTree;
     private const int INDENT_WIDTH = 20;
     private const int ARROW_WIDTH = 20;
+    private readonly ImageList _imgFiles;
+    private readonly bool _isSimpleMode;
+    private List<ColumnInfo> _columnConfig;
+    private readonly string _configPath = "file_columns.json";
+    private string _currentHash = string.Empty;
+    private string _lastHash = string.Empty;
 
-    public FileListViewManager(ListView fileListView)
+    public FileListViewManager(ListView fileListView, ImageList imgFiles, bool isSimpleMode = false)
     {
         _fileListView = fileListView;
+        _imgFiles = imgFiles;
+        _isSimpleMode = isSimpleMode;
         InitializeListView();
     }
 
@@ -24,19 +34,108 @@ public class FileListViewManager
     {
         _fileListView.View = View.Details;
         _fileListView.FullRowSelect = true;
+        _fileListView.MultiSelect = true;
         _fileListView.GridLines = true;
         _fileListView.CheckBoxes = false;
         _fileListView.OwnerDraw = true;
+        _fileListView.SmallImageList = _imgFiles;
 
-        _fileListView.Columns.Add("Name", 300);
-        _fileListView.Columns.Add("Size", 100);
-        _fileListView.Columns.Add("Progress", 100);
-        _fileListView.Columns.Add("Priority", 80);
-        _fileListView.Columns.Add("Availability", 100);
+        if (_isSimpleMode)
+        {
+            InitializeSimpleModeColumns();
+        }
+        else
+        {
+            LoadOrInitializeColumnConfig();
+            ApplyColumnConfig();
+        }
 
         _fileListView.DrawColumnHeader += FileListView_DrawColumnHeader;
         _fileListView.DrawSubItem += FileListView_DrawSubItem;
         _fileListView.MouseClick += FileListView_MouseClick;
+        _fileListView.ColumnWidthChanged += FileListView_ColumnWidthChanged;
+    }
+
+    private void InitializeSimpleModeColumns()
+    {
+        _fileListView.Columns.Clear();
+        _fileListView.Columns.Add("Name", 300);
+        _fileListView.Columns.Add("Size", 100);
+        _fileListView.Columns.Add("Priority", 80);
+    }
+
+    private void LoadOrInitializeColumnConfig()
+    {
+        try
+        {
+            if (File.Exists(_configPath))
+            {
+                var json = File.ReadAllText(_configPath);
+                _columnConfig = System.Text.Json.JsonSerializer.Deserialize<List<ColumnInfo>>(json);
+            }
+            else
+            {
+                InitializeDefaultColumnConfig();
+            }
+        }
+        catch
+        {
+            InitializeDefaultColumnConfig();
+        }
+    }
+
+    private void InitializeDefaultColumnConfig()
+    {
+        var lang = LanguageLoader.Instance;
+        _columnConfig = new List<ColumnInfo>
+        {
+            new ColumnInfo { Name = "nameColumn", Text = lang.GetTranslation("Name"), Width = 300, IsVisible = true },
+            new ColumnInfo { Name = "sizeColumn", Text = lang.GetTranslation("Size"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "progressColumn", Text = lang.GetTranslation("Progress"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "priorityColumn", Text = lang.GetTranslation("Priority"), Width = 80, IsVisible = true },
+            new ColumnInfo { Name = "availabilityColumn", Text = lang.GetTranslation("Availability"), Width = 100, IsVisible = true },
+        };
+    }
+
+    public void ApplyColumnConfig()
+    {
+        if (_columnConfig == null || _isSimpleMode) return;
+
+        _fileListView.BeginUpdate();
+        try
+        {
+            _fileListView.Columns.Clear();
+            _fileListView.Items.Clear();
+
+            // Find and add name column first
+            var nameColumn = _columnConfig.FirstOrDefault(c => c.Name == "nameColumn");
+            if (nameColumn != null)
+            {
+                var header = new ColumnHeader
+                {
+                    Name = nameColumn.Name,
+                    Text = nameColumn.Text,
+                    Width = nameColumn.Width
+                };
+                _fileListView.Columns.Add(header);
+            }
+
+            // Add other columns based on config
+            foreach (var column in _columnConfig.Where(c => c.IsVisible && c.Name != "nameColumn"))
+            {
+                var header = new ColumnHeader
+                {
+                    Name = column.Name,
+                    Text = column.Text,
+                    Width = column.Width
+                };
+                _fileListView.Columns.Add(header);
+            }
+        }
+        finally
+        {
+            _fileListView.EndUpdate();
+        }
     }
 
     private void FileListView_DrawColumnHeader(object? sender, DrawListViewColumnHeaderEventArgs e)
@@ -46,14 +145,16 @@ public class FileListViewManager
 
     private void FileListView_DrawSubItem(object? sender, DrawListViewSubItemEventArgs e)
     {
-        if (e.ColumnIndex != 0)
+        // check column index
+        if (e.ColumnIndex != 0 && _fileListView.Columns[e.ColumnIndex].Name != "progressColumn")
         {
             e.DrawDefault = true;
             return;
         }
 
         var item = e.Item;
-        var fileTree = (TorrentFileTree)item.Tag;
+        var fileTree = item.Tag as TorrentFileTree;
+        if (fileTree == null) return;
 
         // Draw background with selection state
         if (item.Selected)
@@ -71,36 +172,83 @@ public class FileListViewManager
             e.Graphics.DrawLine(pen, e.Bounds.Left, e.Bounds.Bottom - 1, e.Bounds.Right, e.Bounds.Bottom - 1);
         }
 
-        var x = e.Bounds.X;
-        var y = e.Bounds.Y + (e.Bounds.Height - 16) / 2;
-
-        // Draw indent
-        x += fileTree.IndentCount * INDENT_WIDTH;
-
-        // Draw arrow if has children
-        if (fileTree.Children.Count > 0)
+        if (e.ColumnIndex == 0)
         {
-            var arrow = fileTree.IsExpanded ? "▼" : "▶";
-            var arrowSize = e.Graphics.MeasureString(arrow, _fileListView.Font);
-            e.Graphics.DrawString(arrow, _fileListView.Font, item.Selected ? SystemBrushes.HighlightText : Brushes.Black, x, y);
+            var x = e.Bounds.X;
+            var y = e.Bounds.Y + (e.Bounds.Height - 16) / 2;
+
+            // Draw indent
+            x += fileTree.IndentCount * INDENT_WIDTH;
+
+            // Draw arrow if has children
+            if (fileTree.Children.Count > 0)
+            {
+                var arrowIndex = fileTree.IsExpanded ? 2 : 1; // 2 for down arrow, 1 for right arrow
+                e.Graphics.DrawImage(_imgFiles.Images[arrowIndex], x, y);
+                x += ARROW_WIDTH;
+            }
+
+            // Draw folder icon if it's a directory
+            if (fileTree.Children.Count > 0)
+            {
+                e.Graphics.DrawImage(_imgFiles.Images[0], x, y);
+                x += 16;
+            }
+
+            // Draw text with clipping
+            var textRect = new Rectangle(x, e.Bounds.Y, e.Bounds.Width - x, e.Bounds.Height);
+            var format = new StringFormat
+            {
+                Trimming = StringTrimming.EllipsisCharacter,
+                FormatFlags = StringFormatFlags.NoWrap,
+                LineAlignment = StringAlignment.Center
+            };
+            e.Graphics.DrawString(fileTree.BaseName, _fileListView.Font, 
+                item.Selected ? SystemBrushes.HighlightText : Brushes.Black, 
+                textRect, format);
         }
-        x += ARROW_WIDTH;
-
-        // Draw checkbox
-        var checkboxPoint = new Point(x, y + 2);
-        CheckBoxRenderer.DrawCheckBox(e.Graphics, checkboxPoint, fileTree.CachedCheckBoxState);
-        x += 20;
-
-        // Draw text with clipping
-        var textRect = new Rectangle(x, e.Bounds.Y, e.Bounds.Width - x, e.Bounds.Height);
-        var format = new StringFormat
+        else if (_fileListView.Columns[e.ColumnIndex].Name == "progressColumn")
         {
-            Trimming = StringTrimming.EllipsisCharacter,
-            FormatFlags = StringFormatFlags.NoWrap
-        };
-        e.Graphics.DrawString(fileTree.BaseName, _fileListView.Font, 
-            item.Selected ? SystemBrushes.HighlightText : Brushes.Black, 
-            textRect, format);
+            // Draw progress bar
+            // fileTree.Progress is a double between 0 and 1
+            var progress = fileTree.Progress; // Convert from percentage to decimal
+            var progressPercent = progress * 100;
+            var progressText = $"{progressPercent:F1}%";
+            
+            // Calculate progress bar dimensions
+            var barWidth = e.Bounds.Width - 8; // Leave 4px padding on each side
+            var barHeight = e.Bounds.Height - 4; // Leave 2px padding on top and bottom
+            var progressWidth = (int)(barWidth * progress);
+            
+            // Draw progress bar background
+            var bgRect = new Rectangle(e.Bounds.X + 4, e.Bounds.Y + 2, barWidth, barHeight);
+            using (var brush = new SolidBrush(Color.FromArgb(240, 240, 240)))
+            {
+                e.Graphics.FillRectangle(brush, bgRect);
+            }
+
+            // Draw progress bar fill
+            if (progress > 0)
+            {
+                var progressRect = new Rectangle(e.Bounds.X + 4, e.Bounds.Y + 2, progressWidth, barHeight);
+                using (var brush = new SolidBrush(Color.SkyBlue))
+                {
+                    e.Graphics.FillRectangle(brush, progressRect);
+                }
+            }
+
+            // Draw progress text
+            var format = new StringFormat
+            {
+                Alignment = StringAlignment.Center,
+                LineAlignment = StringAlignment.Center
+            };
+            e.Graphics.DrawString(progressText, _fileListView.Font, Brushes.Black, e.Bounds, format);
+        }
+        else
+        {
+            e.DrawDefault = true;
+        }
     }
 
     private void FileListView_MouseClick(object? sender, MouseEventArgs e)
@@ -118,12 +266,6 @@ public class FileListViewManager
         {
             fileTree.IsExpanded = !fileTree.IsExpanded;
             UpdateExpandedState(fileTree);
-        }
-        // Check if clicked on checkbox
-        else if (e.X >= x + ARROW_WIDTH && e.X < x + ARROW_WIDTH + 20)
-        {
-            fileTree.IsSeed = !fileTree.IsSeed;
-            _fileListView.Invalidate();
         }
     }
 
@@ -165,28 +307,38 @@ public class FileListViewManager
                     break;
                 itemsToRemove.Add(_fileListView.Items[i]);
             }
+            _fileListView.BeginUpdate();
             foreach (var item in itemsToRemove)
             {
                 _fileListView.Items.Remove(item);
             }
+            _fileListView.EndUpdate();
         }
         _fileListView.Invalidate();
     }
 
-    private void AddTreeItems(List<TorrentFileTree> items, List<ListViewItem> targetList)
+    private void AddTreeItems(List<TorrentFileTree> items, dynamic targetList)
     {
         foreach (var item in items)
         {
-            var listItem = new ListViewItem(new[]
+            var subItems = new List<string> { item.BaseName };
+
+            if (_isSimpleMode)
             {
-                item.BaseName,
-                FormattingUtils.FormatSize(item.Size),
-                $"{item.Progress:F1}%",
-                item.Priority.ToString(),
-                $"{item.Availability:F2}"
-            });
+                subItems.Add(FormattingUtils.FormatSize(item.Size));
+                subItems.Add(item.Priority.ToString());
+            }
+            else
+            {
+                foreach (ColumnHeader column in _fileListView.Columns.Cast<ColumnHeader>().Skip(1))
+                {
+                    string text = GetColumnText(column.Name, item);
+                    subItems.Add(text);
+                }
+            }
+
+            var listItem = new ListViewItem(subItems.ToArray());
             listItem.Tag = item;
-            listItem.IndentCount = item.IndentCount;
             targetList.Add(listItem);
 
             if (item.IsExpanded)
@@ -196,50 +348,168 @@ public class FileListViewManager
         }
     }
 
-    private void AddTreeItems(List<TorrentFileTree> items)
+    private string GetColumnText(string columnName, TorrentFileTree item)
     {
-        foreach (var item in items)
+        return columnName switch
         {
-            var listItem = new ListViewItem(new[]
-            {
-                item.BaseName,
-                FormattingUtils.FormatSize(item.Size),
-                $"{item.Progress:F1}%",
-                item.Priority.ToString(),
-                $"{item.Availability:F2}"
-            });
-            listItem.Tag = item;
-            listItem.IndentCount = item.IndentCount;
-            _fileListView.Items.Add(listItem);
+            "sizeColumn" => FormattingUtils.FormatSize(item.Size),
+            "progressColumn" => $"{item.Progress:F1}%",
+            "priorityColumn" => item.Priority.ToString(),
+            "availabilityColumn" => $"{item.Availability:F2}",
+            _ => "?"
+        };
+    }
 
-            if (item.IsExpanded)
-            {
-                AddTreeItems(item.Children);
-            }
+    public void SaveColumnConfig()
+    {
+        if (_isSimpleMode) return;
+        try
+        {
+            var json = System.Text.Json.JsonSerializer.Serialize(_columnConfig);
+            File.WriteAllText(_configPath, json);
+        }
+        catch
+        {
+            // Log error if needed
         }
     }
 
-    public void UpdateFileList(IEnumerable<TorrentContentInfo> files)
+    public List<ColumnInfo> GetColumnConfig()
     {
-        _fileTree = TorrentFileTree.BuildTree(files);
+        return _columnConfig;
+    }
+
+    public void SetColumnConfig(List<ColumnInfo> config)
+    {
+        if (_isSimpleMode) return;
+
+        // Ensure name column is always visible and at the beginning
+        var nameColumn = config.FirstOrDefault(c => c.Name == "nameColumn");
+        if (nameColumn != null)
+        {
+            nameColumn.IsVisible = true;
+            config.Remove(nameColumn);
+            config.Insert(0, nameColumn);
+        }
+
+        _columnConfig = config;
+        ApplyColumnConfig();
+    }
+
+    public void UpdateFileList(IEnumerable<TorrentContentInfo> files, string hash)
+    {
+        _lastHash = _currentHash;
+        _currentHash = hash;
+        
+        // If it's the same torrent, preserve expanded state
+        if (hash == _lastHash && _fileTree != null)
+        {
+            var expandedPaths = GetExpandedPaths(_fileTree);
+            _fileTree = TorrentFileTree.BuildTree(files);
+            RestoreExpandedState(_fileTree, expandedPaths);
+        }
+        else
+        {
+            _fileTree = TorrentFileTree.BuildTree(files);
+        }
+        
         _fileTree.ForEach(item => item.UpdateStateRecursively());
         RefreshFileList();
+    }
+
+    private HashSet<string> GetExpandedPaths(List<TorrentFileTree> tree)
+    {
+        var paths = new HashSet<string>();
+        foreach (var item in tree)
+        {
+            if (item.IsExpanded)
+            {
+                paths.Add(item.FullPath);
+                paths.UnionWith(GetExpandedPaths(item.Children));
+            }
+        }
+        return paths;
+    }
+
+    private void RestoreExpandedState(List<TorrentFileTree> tree, HashSet<string> expandedPaths)
+    {
+        foreach (var item in tree)
+        {
+            if (expandedPaths.Contains(item.FullPath))
+            {
+                item.IsExpanded = true;
+                RestoreExpandedState(item.Children, expandedPaths);
+            }
+        }
     }
 
     public void ClearFileList()
     {
         _fileTree = null;
+        _currentHash = string.Empty;
+        _lastHash = string.Empty;
         _fileListView.Items.Clear();
     }
 
     private void RefreshFileList()
     {
         _fileListView.BeginUpdate();
-        _fileListView.Items.Clear();
-        if (_fileTree != null)
+        try
         {
-            AddTreeItems(_fileTree);
+            if (_fileTree == null)
+            {
+                _fileListView.Items.Clear();
+                return;
+            }
+
+            if (_currentHash != _lastHash)
+            {
+                _fileListView.Items.Clear();
+                AddTreeItems(_fileTree, _fileListView.Items);
+                return;
+            }
+
+            // add tree items to List<ListViewItem>
+            var items = new List<ListViewItem>();
+            AddTreeItems(_fileTree, items);
+
+            // now compare and update the items
+            for (int i = 0; i < items.Count; i++)
+            {
+                var item = items[i];
+                var existingItem = _fileListView.Items[i];
+                for (int j = 0; j < existingItem.SubItems.Count; j++)
+                {
+                    existingItem.SubItems[j].Text = item.SubItems[j].Text;
+                }
+                existingItem.Tag = item.Tag;
+            }
+            _fileListView.Invalidate();
         }
-        _fileListView.EndUpdate();
+        finally
+        {
+            _fileListView.EndUpdate();
+        }
+    }
+
+    private void UpdateListViewItem(ListViewItem item, TorrentFileTree fileTree)
+    {
+        item.Text = fileTree.BaseName;
+        for (int i = 0; i < _fileListView.Columns.Count - 1; i++)
+        {
+            var column = _fileListView.Columns[i + 1];
+            item.SubItems[i + 1].Text = GetColumnText(column.Name, fileTree);
+        }
+    }
+
+    private void FileListView_ColumnWidthChanged(object sender, ColumnWidthChangedEventArgs e)
+    {
+        var column = _fileListView.Columns[e.ColumnIndex];
+        var columnInfo = _columnConfig.FirstOrDefault(c => c.Name == column.Name);
+        if (columnInfo != null)
+        {
+            columnInfo.Width = column.Width;
+            SaveColumnConfig();
+        }
     }
 } 

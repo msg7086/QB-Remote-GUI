@@ -58,8 +58,6 @@ namespace QB_Remote_GUI
                 "peer_columns.json");
 
             InitializeComponent();
-            LoadTorrentColumnConfig();
-            LoadPeerColumnConfig();
             InitializeControls();
             LoadConnections();
         }
@@ -107,7 +105,7 @@ namespace QB_Remote_GUI
             // Initialize view managers
             _torrentListViewManager = new TorrentListViewManager(torrentListView, imgTorrent);
             _peerListViewManager = new PeerListViewManager(peerListView);
-            _fileListViewManager = new FileListViewManager(fileListView);
+            _fileListViewManager = new FileListViewManager(fileListView, imgFiles);
 
             tsConfigureTorrentColumns.Text = lang.GetTranslation("Setup columns") + "...";
             tsConfigurePeerColumns.Text = lang.GetTranslation("Setup columns") + "...";
@@ -122,28 +120,6 @@ namespace QB_Remote_GUI
 
             urlColumn.Width = 400;
             statusColumn2.Width = 100;
-
-            // Set up peer list view
-            //peerListView.View = View.Details;
-            //peerListView.FullRowSelect = true;
-            //peerListView.GridLines = true;
-
-            //ipColumn.Text = "IP";
-            //clientColumn.Text = lang.GetTranslation("Client");
-            //flagsColumn.Text = lang.GetTranslation("Flags");
-            //progressColumn2.Text = lang.GetTranslation("Progress");
-            //downloadSpeedColumn2.Text = lang.GetTranslation("Download speed");
-            //uploadSpeedColumn2.Text = lang.GetTranslation("Upload speed");
-
-            //ipColumn.Width = 150;
-            //clientColumn.Width = 150;
-            //flagsColumn.Width = 100;
-            //progressColumn2.Width = 100;
-            //downloadSpeedColumn2.Width = 100;
-            //uploadSpeedColumn2.Width = 100;
-
-            // Set up file tree view
-            //fileListView.CheckBoxes = true;
 
             torrentListView.SetDoubleBuffered();
             trackerListView.SetDoubleBuffered();
@@ -442,21 +418,7 @@ namespace QB_Remote_GUI
                 // 仅在有选中的种子时更新详情
                 if (_selectedTorrent != null)
                 {
-                    // 仅在 General 标签页可见时更新常规信息
-                    if (tabControl.SelectedTab == generalTab)
-                    {
-                        var properties = await _client.GetTorrentPropertiesAsync(_selectedTorrent.Hash);
-                        torrentInfoView1.Render(_selectedTorrent, properties);
-
-                        var pieces = await _client.GetTorrentPiecesStatesAsync(_selectedTorrent.Hash);
-                        torrentPieceView1.Render([.. pieces]);
-                    }
-
-                    // 仅在 Peers 标签页可见时更新对等点信息
-                    if (tabControl.SelectedTab == peersTab)
-                    {
-                        await UpdatePeerList();
-                    }
+                    await RefreshSelectedTorrentDetails();
                 }
             }
             catch (Exception ex)
@@ -465,6 +427,42 @@ namespace QB_Remote_GUI
                 timerSync.Stop();
                 _isConnected = false;
                 UpdateControlState();
+            }
+        }
+
+        private async Task RefreshSelectedTorrentDetails()
+        {
+            if (_selectedTorrent == null || _client == null) return;
+            var hash = _selectedTorrent.Hash;
+
+            try
+            {
+                // 仅在 General 标签页可见时更新常规信息
+                if (tabControl.SelectedTab == generalTab)
+                {
+                    var properties = await _client.GetTorrentPropertiesAsync(hash);
+                    torrentInfoView1.Render(_selectedTorrent, properties);
+
+                    var pieces = await _client.GetTorrentPiecesStatesAsync(hash);
+                    torrentPieceView1.Render([.. pieces]);
+                }
+
+                // 仅在 Peers 标签页可见时更新对等点信息
+                if (tabControl.SelectedTab == peersTab)
+                {
+                    await UpdatePeerList();
+                }
+
+                // 仅在 Files 标签页可见时更新文件信息
+                if (tabControl.SelectedTab == filesTab)
+                {
+                    var files = await _client.GetTorrentContentsAsync(hash);
+                    _fileListViewManager?.UpdateFileList(files, hash);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"获取种子详情失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -517,7 +515,7 @@ namespace QB_Remote_GUI
             tsbPauseTorrent.Enabled = _isConnected && hasSelection;
             tsbDeleteTorrent.Enabled = _isConnected && hasSelection;
 
-            tabControl.Enabled = _isConnected && hasSelection;
+            //tabControl.Enabled = _isConnected && hasSelection;
         }
 
         private async void TorrentListView_SelectedIndexChanged(object sender, EventArgs e)
@@ -530,19 +528,18 @@ namespace QB_Remote_GUI
             {
                 _selectedTorrent = torrentListView.SelectedItems[0].Tag as TorrentInfo;
                 if (_selectedTorrent == null) return;
-                var hash = _selectedTorrent.Hash;
 
                 try
                 {
                     // Update general properties
-                    var properties = await _client.GetTorrentPropertiesAsync(hash);
+                    var properties = await _client.GetTorrentPropertiesAsync(_selectedTorrent.Hash);
                     torrentInfoView1.Render(_selectedTorrent, properties);
 
-                    var pieces = await _client.GetTorrentPiecesStatesAsync(hash);
+                    var pieces = await _client.GetTorrentPiecesStatesAsync(_selectedTorrent.Hash);
                     torrentPieceView1.Render([.. pieces]);
 
                     // Update trackers
-                    var trackers = await _client.GetTorrentTrackersAsync(hash);
+                    var trackers = await _client.GetTorrentTrackersAsync(_selectedTorrent.Hash);
                     trackerListView.BeginUpdate();
                     trackerListView.Items.Clear();
                     foreach (var tracker in trackers)
@@ -559,8 +556,8 @@ namespace QB_Remote_GUI
                     await UpdatePeerList();
 
                     // Update files
-                    var files = await _client.GetTorrentContentsAsync(hash);
-                    _fileListViewManager?.UpdateFileList(files);
+                    var files = await _client.GetTorrentContentsAsync(_selectedTorrent.Hash);
+                    _fileListViewManager?.UpdateFileList(files, _selectedTorrent.Hash);
                 }
                 catch (Exception ex)
                 {
@@ -754,39 +751,7 @@ namespace QB_Remote_GUI
             File.WriteAllText(filePath, json);
         }
 
-        private void LoadTorrentColumnConfig()
-        {
-            try
-            {
-                if (File.Exists(_torrentColumnsConfigPath))
-                {
-                    var json = File.ReadAllText(_torrentColumnsConfigPath);
-                    _torrentColumnConfig = System.Text.Json.JsonSerializer.Deserialize<List<ColumnInfo>>(json);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"加载种子列配置失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void SaveTorrentColumnConfig()
-        {
-            try
-            {
-                var json = System.Text.Json.JsonSerializer.Serialize(_torrentColumnConfig, new System.Text.Json.JsonSerializerOptions
-                {
-                    WriteIndented = true
-                });
-                File.WriteAllText(_torrentColumnsConfigPath, json);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"保存种子列配置失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void ConfigureColumns(object sender, EventArgs e)
+        private void ConfigureTorrentListViewColumns(object sender, EventArgs e)
         {
             using var form = new ListViewColumnSelector(torrentListView, _torrentListViewManager?.GetColumnConfig());
             if (form.ShowDialog() == DialogResult.OK)
@@ -796,23 +761,7 @@ namespace QB_Remote_GUI
             }
         }
 
-        private void torrentListView_ColumnWidthChanged(object sender, ColumnWidthChangedEventArgs e)
-        {
-            var column = torrentListView.Columns[e.ColumnIndex];
-            var columnInfo = _torrentColumnConfig.FirstOrDefault(c => c.Name == column.Name);
-            if (columnInfo != null)
-            {
-                columnInfo.Width = column.Width;
-                SaveTorrentColumnConfig();
-            }
-        }
-
-        private async void timerSync_Tick(object sender, EventArgs e)
-        {
-            await SyncData();
-        }
-
-        private void tsConfigurePeerColumns_Click(object sender, EventArgs e)
+        private void ConfigurePeerListViewColumns(object sender, EventArgs e)
         {
             using var form = new ListViewColumnSelector(peerListView, _peerListViewManager?.GetColumnConfig());
             if (form.ShowDialog() == DialogResult.OK)
@@ -822,36 +771,19 @@ namespace QB_Remote_GUI
             }
         }
 
-        private void LoadPeerColumnConfig()
+        private void ConfigureFileListViewColumns(object sender, EventArgs e)
         {
-            try
+            using var form = new ListViewColumnSelector(fileListView, _fileListViewManager?.GetColumnConfig());
+            if (form.ShowDialog() == DialogResult.OK)
             {
-                if (File.Exists(_peerColumnsConfigPath))
-                {
-                    var json = File.ReadAllText(_peerColumnsConfigPath);
-                    _peerColumnConfig = System.Text.Json.JsonSerializer.Deserialize<List<ColumnInfo>>(json);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"加载对等点列配置失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                _fileListViewManager?.SetColumnConfig(form.SelectedColumns);
+                _fileListViewManager?.SaveColumnConfig();
             }
         }
 
-        private void SavePeerColumnConfig()
+        private async void timerSync_Tick(object sender, EventArgs e)
         {
-            try
-            {
-                var json = System.Text.Json.JsonSerializer.Serialize(_peerColumnConfig, new System.Text.Json.JsonSerializerOptions
-                {
-                    WriteIndented = true
-                });
-                File.WriteAllText(_peerColumnsConfigPath, json);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"保存对等点列配置失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            await SyncData();
         }
 
         private async Task UpdatePeerList()
@@ -902,15 +834,5 @@ namespace QB_Remote_GUI
             }
         }
 
-        private void peerListView_ColumnWidthChanged(object sender, ColumnWidthChangedEventArgs e)
-        {
-            var column = peerListView.Columns[e.ColumnIndex];
-            var columnInfo = _peerListViewManager?.GetColumnConfig().FirstOrDefault(c => c.Name == column.Name);
-            if (columnInfo != null)
-            {
-                columnInfo.Width = column.Width;
-                _peerListViewManager?.SaveColumnConfig();
-            }
-        }
     }
 }

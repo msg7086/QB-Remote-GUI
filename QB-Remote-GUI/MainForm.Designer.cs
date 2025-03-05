@@ -91,8 +91,11 @@
             contextMenuPeerListView = new ContextMenuStrip(components);
             tsConfigurePeerColumns = new ToolStripMenuItem();
             filesTab = new TabPage();
-            timerSync = new System.Windows.Forms.Timer(components);
             fileListView = new ListView();
+            timerSync = new System.Windows.Forms.Timer(components);
+            imgFiles = new ImageList(components);
+            contextMenuFileListView = new ContextMenuStrip(components);
+            tsConfigureFileColumns = new ToolStripMenuItem();
             menuStrip.SuspendLayout();
             toolStrip.SuspendLayout();
             statusStrip.SuspendLayout();
@@ -111,6 +114,7 @@
             peersTab.SuspendLayout();
             contextMenuPeerListView.SuspendLayout();
             filesTab.SuspendLayout();
+            contextMenuFileListView.SuspendLayout();
             SuspendLayout();
             // 
             // menuStrip
@@ -373,7 +377,6 @@
             torrentListView.TabIndex = 0;
             torrentListView.UseCompatibleStateImageBehavior = false;
             torrentListView.ColumnClick += TorrentListView_ColumnClick;
-            torrentListView.ColumnWidthChanged += torrentListView_ColumnWidthChanged;
             torrentListView.SelectedIndexChanged += TorrentListView_SelectedIndexChanged;
             // 
             // contextMenuTorrentListView
@@ -387,7 +390,7 @@
             tsConfigureTorrentColumns.Name = "tsConfigureTorrentColumns";
             tsConfigureTorrentColumns.Size = new Size(161, 22);
             tsConfigureTorrentColumns.Text = "Setup columns";
-            tsConfigureTorrentColumns.Click += ConfigureColumns;
+            tsConfigureTorrentColumns.Click += ConfigureTorrentListViewColumns;
             // 
             // imgTorrent
             // 
@@ -488,14 +491,14 @@
             // 
             contextMenuPeerListView.Items.AddRange(new ToolStripItem[] { tsConfigurePeerColumns });
             contextMenuPeerListView.Name = "contextMenuPeerListView";
-            contextMenuPeerListView.Size = new Size(104, 26);
+            contextMenuPeerListView.Size = new Size(162, 26);
             // 
             // tsConfigurePeerColumns
             // 
             tsConfigurePeerColumns.Name = "tsConfigurePeerColumns";
-            tsConfigurePeerColumns.Size = new Size(103, 22);
-            tsConfigurePeerColumns.Text = "Conf";
-            tsConfigurePeerColumns.Click += tsConfigurePeerColumns_Click;
+            tsConfigurePeerColumns.Size = new Size(161, 22);
+            tsConfigurePeerColumns.Text = "Setup columns";
+            tsConfigurePeerColumns.Click += ConfigurePeerListViewColumns;
             // 
             // filesTab
             // 
@@ -506,20 +509,43 @@
             filesTab.TabIndex = 3;
             filesTab.Text = "Files";
             // 
-            // timerSync
-            // 
-            timerSync.Enabled = true;
-            timerSync.Interval = 5000;
-            timerSync.Tick += timerSync_Tick;
-            // 
             // fileListView
             // 
+            fileListView.ContextMenuStrip = contextMenuFileListView;
             fileListView.Dock = DockStyle.Fill;
             fileListView.Location = new Point(0, 0);
             fileListView.Name = "fileListView";
             fileListView.Size = new Size(1039, 341);
             fileListView.TabIndex = 0;
             fileListView.UseCompatibleStateImageBehavior = false;
+            // 
+            // timerSync
+            // 
+            timerSync.Enabled = true;
+            timerSync.Interval = 5000;
+            timerSync.Tick += timerSync_Tick;
+            // 
+            // imgFiles
+            // 
+            imgFiles.ColorDepth = ColorDepth.Depth32Bit;
+            imgFiles.ImageStream = (ImageListStreamer)resources.GetObject("imgFiles.ImageStream");
+            imgFiles.TransparentColor = Color.Transparent;
+            imgFiles.Images.SetKeyName(0, "tr_dir.png");
+            imgFiles.Images.SetKeyName(1, "sui-right.png");
+            imgFiles.Images.SetKeyName(2, "sui-down.png");
+            // 
+            // contextMenuFileListView
+            // 
+            contextMenuFileListView.Items.AddRange(new ToolStripItem[] { tsConfigureFileColumns });
+            contextMenuFileListView.Name = "tsConfigureFileColumns";
+            contextMenuFileListView.Size = new Size(162, 26);
+            contextMenuFileListView.Click += ConfigureFileListViewColumns;
+            // 
+            // tsConfigureFileColumns
+            // 
+            tsConfigureFileColumns.Name = "tsConfigureFileColumns";
+            tsConfigureFileColumns.Size = new Size(180, 22);
+            tsConfigureFileColumns.Text = "Setup columns";
             // 
             // MainForm
             // 
@@ -553,6 +579,7 @@
             peersTab.ResumeLayout(false);
             contextMenuPeerListView.ResumeLayout(false);
             filesTab.ResumeLayout(false);
+            contextMenuFileListView.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -622,5 +649,8 @@
         private ContextMenuStrip contextMenuPeerListView;
         private ToolStripMenuItem tsConfigurePeerColumns;
         private ListView fileListView;
+        private ImageList imgFiles;
+        private ContextMenuStrip contextMenuFileListView;
+        private ToolStripMenuItem tsConfigureFileColumns;
     }
 }

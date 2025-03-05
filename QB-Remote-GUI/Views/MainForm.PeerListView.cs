@@ -27,6 +27,8 @@ namespace QB_Remote_GUI.Views
 
             LoadOrInitializeColumnConfig();
             ApplyColumnConfig();
+
+            _peerListView.ColumnWidthChanged += PeerListView_ColumnWidthChanged;
         }
 
         private void LoadOrInitializeColumnConfig()
@@ -214,6 +216,17 @@ namespace QB_Remote_GUI.Views
             if (peers.Count > 0)
             {
                 UpdatePeers(peers);
+            }
+        }
+
+        private void PeerListView_ColumnWidthChanged(object sender, ColumnWidthChangedEventArgs e)
+        {
+            var column = _peerListView.Columns[e.ColumnIndex];
+            var columnInfo = _columnConfig.FirstOrDefault(c => c.Name == column.Name);
+            if (columnInfo != null)
+            {
+                columnInfo.Width = column.Width;
+                SaveColumnConfig();
             }
         }
     }
