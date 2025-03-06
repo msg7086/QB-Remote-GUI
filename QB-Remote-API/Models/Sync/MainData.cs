@@ -42,7 +42,7 @@ public class MainData
     /// List of tags
     /// </summary>
     [JsonPropertyName("tags")]
-    public List<string> Tags { get; set; } = new();
+    public List<string> Tags { get; set; } = [];
 
     /// <summary>
     /// Global transfer information

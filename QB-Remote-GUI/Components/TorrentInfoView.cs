@@ -155,7 +155,7 @@ namespace QB_Remote_GUI.Components
             valueLabels["Torrent_Info hash v1"].Text = properties.InfohashV1;
             valueLabels["Torrent_Info hash v2"].Text = properties.InfohashV2;
             valueLabels["Torrent_Added on"].Text = UnixTimeToDateTime(properties.AdditionDate).ToString("g");
-            valueLabels["Torrent_Magnet link"].Text = info.MagnetURI;
+            valueLabels["Torrent_Magnet link"].Text = info.MagnetUri;
 
             valueLabels["Torrent_Created on"].Text = UnixTimeToDateTime(properties.CreationDate).ToString("g");
             valueLabels["Torrent_Pieces"].Text = $"{properties.PiecesHave} x {FormatBytes(properties.PieceSize)} ({properties.PiecesNum})"; // Piece count needs to be provided separately

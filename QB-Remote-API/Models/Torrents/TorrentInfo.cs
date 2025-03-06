@@ -125,7 +125,7 @@ public class TorrentInfo
     /// Auto TMM (true if auto TMM is enabled)
     /// </summary>
     [JsonPropertyName("auto_tmm")]
-    public bool? AutoTMM { get; set; }
+    public bool? AutoTmm { get; set; }
 
     /// <summary>
     /// Availability (0-1)
@@ -179,7 +179,7 @@ public class TorrentInfo
     /// Torrent ETA (seconds)
     /// </summary>
     [JsonPropertyName("eta")]
-    public long? ETA { get; set; }
+    public long? Eta { get; set; }
 
     /// <summary>
     /// Torrent force start (true if force start is enabled)
@@ -215,7 +215,7 @@ public class TorrentInfo
     /// Torrent magnet URI
     /// </summary>
     [JsonPropertyName("magnet_uri")]
-    public string? MagnetURI { get; set; }
+    public string? MagnetUri { get; set; }
 
     /// <summary>
     /// Torrent max inactive seeding time (seconds)
@@ -349,9 +349,6 @@ public class TorrentInfo
     /// <param name="other">The other torrent info to update with</param>
     public void Update(TorrentInfo other)
     {
-        if (other == null)
-            return;
-
         foreach (var property in other.GetType().GetProperties())
         {
             var value = property.GetValue(other);

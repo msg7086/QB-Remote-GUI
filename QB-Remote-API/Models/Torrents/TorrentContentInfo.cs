@@ -47,7 +47,7 @@ public class TorrentContentInfo
     /// File piece range
     /// </summary>
     [JsonPropertyName("piece_range")]
-    public int[] PieceRange { get; set; } = Array.Empty<int>();
+    public int[] PieceRange { get; set; } = [];
 
     /// <summary>
     /// File availability

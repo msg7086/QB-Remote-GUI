@@ -115,9 +115,6 @@ public class PeerInfo
     /// <param name="other">The other peer info to update with</param>
     public void Update(PeerInfo other)
     {
-        if (other == null)
-            return;
-
         foreach (var property in other.GetType().GetProperties())
         {
             var value = property.GetValue(other);

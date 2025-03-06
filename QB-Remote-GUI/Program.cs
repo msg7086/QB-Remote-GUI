@@ -1,5 +1,3 @@
-using QB.Remote.API.Clients;
-
 namespace QB_Remote_GUI;
 
 static class Program

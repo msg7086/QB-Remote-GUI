@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.Extensions.Options;
 using QB.Remote.API.Extensions;
 using QB.Remote.API.Interfaces;
@@ -264,7 +265,7 @@ public class QBittorrentClient : IQBittorrentClient, IDisposable
         if (options.UploadLimit.HasValue)
             content.Add(new StringContent(options.UploadLimit.Value.ToString()), "upLimit");
         if (options.RatioLimit.HasValue)
-            content.Add(new StringContent(options.RatioLimit.Value.ToString()), "ratioLimit");
+            content.Add(new StringContent(options.RatioLimit.Value.ToString(CultureInfo.InvariantCulture)), "ratioLimit");
         if (options.SeedingTimeLimit.HasValue)
             content.Add(new StringContent(options.SeedingTimeLimit.Value.ToString()), "seedingTimeLimit");
 

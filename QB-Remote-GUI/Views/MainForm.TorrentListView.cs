@@ -191,7 +191,7 @@ public class TorrentListViewManager
             "peersColumn" => $"{torrent.ConnectedPeers}/{torrent.TotalPeers}",
             "downloadSpeedColumn" => FormattingUtils.FormatSpeed(torrent.DownloadSpeed),
             "uploadSpeedColumn" => FormattingUtils.FormatSpeed(torrent.UploadSpeed),
-            "etaColumn" => torrent.ETA == 8640000 ? "∞" : FormattingUtils.FormatReadableTime(torrent.ETA),
+            "etaColumn" => torrent.Eta == 8640000 ? "∞" : FormattingUtils.FormatReadableTime(torrent.Eta),
             "ratioColumn" => $"{torrent.Ratio:F2}",
             "addedOnColumn" => FormattingUtils.FormatDateTime(torrent.AddedOn),
             "completedOnColumn" => FormattingUtils.FormatDateTime(torrent.CompletionOn),
