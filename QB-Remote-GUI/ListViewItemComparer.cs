@@ -1,47 +1,20 @@
-﻿namespace QB_Remote_GUI;
+﻿using QB_Remote_GUI.Models;
+using QB.Remote.API.Models.Torrents;
 
-class ListViewItemComparer : System.Collections.IComparer
+namespace QB_Remote_GUI;
+
+internal class ListViewItemComparer(int column, bool ascending) : System.Collections.IComparer
 {
-    private int _col;
-    private bool _ascending;
-    public ListViewItemComparer(int column, bool ascending)
+    public int Compare(object? x, object? y)
     {
-        _col = column;
-        _ascending = ascending;
-    }
-    public int Compare(object x, object y)
-    {
-        int returnVal = 0;
-        if (!(x is ListViewItem itemX) || !(y is ListViewItem itemY))
-        {
-            return returnVal;
-        }
-
-        if (itemX.SubItems.Count <= _col || itemY.SubItems.Count <= _col)
-        {
-            return returnVal;
-        }
-
-        string textX = itemX.SubItems[_col].Text;
-        string textY = itemY.SubItems[_col].Text;
-
-        // Attempt to parse as numbers for numeric comparison
-        if (double.TryParse(textX, out double numberX) && double.TryParse(textY, out double numberY))
-        {
-            returnVal = numberX.CompareTo(numberY);
-        }
-        else
-        {
-            // Compare as strings
-            returnVal = string.Compare(textX, textY);
-        }
-
-        // Adjust sort order
-        if (!_ascending)
-        {
-            returnVal *= -1;
-        }
-
-        return returnVal;
+        if (x == null && y == null) return 0;
+        if (x is not ListViewItem itemX || y is not ListViewItem itemY) return 0;
+        if (itemX.SubItems.Count <= column || itemY.SubItems.Count <= column) return 0;
+        if (itemX.Tag is not TorrentInfo torrentX || itemY.Tag is not TorrentInfo torrentY) return 0;
+        var listViewX = itemX.ListView;
+        var listViewY = itemY.ListView;
+        if (listViewX == null || listViewY == null || listViewX != listViewY) return 0;
+        var columnName = listViewX.Columns[column].Name;
+        return TorrentInfoComparer.Compare(torrentX, torrentY, columnName) * (ascending ? 1 : -1);
     }
 }

@@ -1,17 +1,19 @@
+using QB.Remote.GUI.Models;
+using System.Text.RegularExpressions;
+using QB_Remote_GUI.Forms;
+using QB_Remote_GUI.Models;
+using QB_Remote_GUI.Views;
 using QB.Remote.API.Clients;
 using QB.Remote.API.Interfaces;
 using QB.Remote.API.Models.Sync;
 using QB.Remote.API.Models.Torrents;
-using QB.Remote.GUI.Models;
-using QB_Remote_GUI.Forms;
-using QB_Remote_GUI.Models;
-using QB_Remote_GUI.Views;
-using System.Text.RegularExpressions;
 
 namespace QB_Remote_GUI
 {
     public partial class MainForm : Form
     {
+        private readonly LanguageLoader lang = LanguageLoader.Instance;
+        
         private IQBittorrentClient? _client;
         private int _lastRid;
         private Dictionary<string, TorrentInfo> _torrents = new();
@@ -32,9 +34,8 @@ namespace QB_Remote_GUI
         private readonly PeerListViewManager _peerListViewManager;
         private readonly FileListViewManager _fileListViewManager;
 
-        // Column configuration
-        private readonly string _torrentColumnsConfigPath;
-        private readonly string _peerColumnsConfigPath;
+        private int _sortColumn = 0;
+        private bool _sortAscending = true;
 
         public MainForm()
         {
@@ -43,16 +44,6 @@ namespace QB_Remote_GUI
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "QB-Remote-GUI",
                 "Connections");
-
-            // Set up columns config path
-            _torrentColumnsConfigPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "QB-Remote-GUI",
-                "torrent_columns.json");
-            _peerColumnsConfigPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "QB-Remote-GUI",
-                "peer_columns.json");
 
             InitializeComponent();
 
@@ -67,8 +58,6 @@ namespace QB_Remote_GUI
 
         private void InitializeControls()
         {
-            var lang = LanguageLoader.Instance;
-
             // Set up menu items
             menuTorrent.Text = lang.GetTranslation("&Torrent");
             menuitemConnect.Text = lang.GetTranslation("Connect to Transmission") + "...";
@@ -127,9 +116,6 @@ namespace QB_Remote_GUI
             torrentListView.Sort();
             UpdateControlState();
         }
-
-        private int _sortColumn = 0;
-        private bool _sortAscending = true;
 
         private void TorrentListView_ColumnClick(object sender, ColumnClickEventArgs e)
         {
@@ -218,7 +204,7 @@ namespace QB_Remote_GUI
 
                 _client = new QBittorrentClient(new Microsoft.Extensions.Options.OptionsWrapper<QBittorrentClientOptions>(options));
 
-                // Try to login with new connection
+                // Try to log in with new connection
                 if (await _client.LoginAsync())
                 {
                     _currentConnection = connection;
@@ -242,9 +228,9 @@ namespace QB_Remote_GUI
             }
         }
 
-        private async void Disconnect(object? sender, EventArgs e)
+        private void Disconnect(object? sender, EventArgs e)
         {
-            await Disconnect();
+            _ = Disconnect();
         }
         private async Task Disconnect()
         {
@@ -269,115 +255,6 @@ namespace QB_Remote_GUI
             {
                 MessageBox.Show($"断开连接失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-        }
-
-        private async void AddTorrent(object? sender, EventArgs e)
-        {
-            if (_client == null) return;
-
-            using var dialog = new OpenFileDialog
-            {
-                Filter = "Torrent 文件|*.torrent|所有文件|*.*",
-                Multiselect = true
-            };
-
-            if (dialog.ShowDialog() == DialogResult.OK)
-            {
-                try
-                {
-                    var torrentFiles = new List<byte[]>();
-                    foreach (var file in dialog.FileNames)
-                    {
-                        torrentFiles.Add(await File.ReadAllBytesAsync(file));
-                    }
-
-                    await _client.AddTorrentAsync(new AddTorrentOptions
-                    {
-                        TorrentFiles = torrentFiles,
-                        Stopped = true
-                    });
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"添加种子失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-        }
-
-        private async void StartTorrents(object? sender, EventArgs e)
-        {
-            if (_client == null) return;
-
-            await StartTorrents();
-        }
-
-        private async Task StartTorrents()
-        {
-            var selectedHashes = GetSelectedTorrentHashes();
-            if (selectedHashes.Any())
-            {
-                try
-                {
-                    await _client.ResumeTorrentsAsync(selectedHashes);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"开始种子失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-        }
-
-        private async void PauseTorrents(object? sender, EventArgs e)
-        {
-            if (_client == null) return;
-
-            var selectedHashes = GetSelectedTorrentHashes();
-            if (selectedHashes.Any())
-            {
-                try
-                {
-                    await _client.PauseTorrentsAsync(selectedHashes);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"暂停种子失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-        }
-
-        private async void DeleteTorrents(object? sender, EventArgs e)
-        {
-            if (_client == null) return;
-
-            var selectedHashes = GetSelectedTorrentHashes();
-            if (selectedHashes.Any())
-            {
-                var result = MessageBox.Show(
-                    "是否同时删除文件？",
-                    "删除种子",
-                    MessageBoxButtons.YesNoCancel,
-                    MessageBoxIcon.Question);
-
-                if (result != DialogResult.Cancel)
-                {
-                    try
-                    {
-                        await _client.DeleteTorrentsAsync(selectedHashes, result == DialogResult.Yes);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"删除种子失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-            }
-        }
-
-        private IEnumerable<string> GetSelectedTorrentHashes()
-        {
-            return torrentListView.SelectedItems
-                .Cast<ListViewItem>()
-                .Select(item => item.Name)
-                .ToList();
         }
 
         private async Task SyncData()

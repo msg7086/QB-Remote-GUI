@@ -1,27 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace QB_Remote_GUI;
 
-namespace QB_Remote_GUI
+/// <summary>
+/// Extension methods for List Views
+/// </summary>
+public static class ListViewExtensions
 {
     /// <summary>
-    /// Extension methods for List Views
+    /// Sets the double buffered property of a list view to the specified value
     /// </summary>
-    public static class ListViewExtensions
+    /// <param name="listView">The List view</param>
+    /// <param name="doubleBuffered">Double Buffered or not</param>
+    public static void SetDoubleBuffered(this ListView listView, bool doubleBuffered = true)
     {
-        /// <summary>
-        /// Sets the double buffered property of a list view to the specified value
-        /// </summary>
-        /// <param name="listView">The List view</param>
-        /// <param name="doubleBuffered">Double Buffered or not</param>
-        public static void SetDoubleBuffered(this System.Windows.Forms.ListView listView, bool doubleBuffered = true)
-        {
-            listView
-                .GetType()
-                .GetProperty("DoubleBuffered", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
-                .SetValue(listView, doubleBuffered, null);
-        }
+        listView
+            .GetType()
+            .GetProperty("DoubleBuffered", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+            .SetValue(listView, doubleBuffered, null);
     }
 }

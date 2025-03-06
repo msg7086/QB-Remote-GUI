@@ -1,4 +1,6 @@
-﻿namespace QB_Remote_GUI
+﻿using QB_Remote_GUI.Components;
+
+namespace QB_Remote_GUI
 {
     partial class MainForm
     {
@@ -74,8 +76,8 @@
             imgTorrent = new ImageList(components);
             tabControl = new TabControl();
             generalTab = new TabPage();
-            torrentInfoView1 = new QB_Remote_GUI.Components.TorrentInfoView();
-            torrentPieceView1 = new QB_Remote_GUI.Components.TorrentPieceView();
+            torrentInfoView1 = new TorrentInfoView();
+            torrentPieceView1 = new TorrentPieceView();
             trackersTab = new TabPage();
             trackerListView = new ListView();
             urlColumn = new ColumnHeader();
