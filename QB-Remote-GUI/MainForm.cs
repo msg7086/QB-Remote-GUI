@@ -516,7 +516,7 @@ namespace QB_Remote_GUI.GUI
         private async void ManageConnections(object sender, EventArgs e)
         {
             using var form = new ConnectionManager(_connections);
-            SyncFromModifiedConnections(form._duplicatedConnections);
+            SyncFromModifiedConnections(form.DuplicatedConnections);
             if (form.ShowDialog() == DialogResult.OK && !_isConnected && form.SelectedConnection != null)
             {
                 await ConnectToProfile(form.SelectedConnection);

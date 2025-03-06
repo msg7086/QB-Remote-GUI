@@ -15,6 +15,7 @@ internal class ListViewItemComparer(int column, bool ascending) : System.Collect
         var listViewY = itemY.ListView;
         if (listViewX == null || listViewY == null || listViewX != listViewY) return 0;
         var columnName = listViewX.Columns[column].Name;
+        if (columnName == null) return 0;
         return TorrentInfoComparer.Compare(torrentX, torrentY, columnName) * (ascending ? 1 : -1);
     }
 }

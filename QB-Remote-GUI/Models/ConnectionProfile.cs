@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace QB_Remote_GUI.GUI.Models;
 
-public class ConnectionProfile
+public sealed class ConnectionProfile
 {
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;

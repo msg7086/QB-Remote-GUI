@@ -1,8 +1,7 @@
-using System.Collections.Generic;
 using System.Windows.Forms.VisualStyles;
 using QB_Remote_GUI.API.Models.Torrents;
 
-namespace QB.Remote.GUI.Models;
+namespace QB_Remote_GUI.GUI.Models;
 
 public class TorrentFileTree
 {
@@ -18,7 +17,7 @@ public class TorrentFileTree
     public int IndentCount { get; set; }
     public bool IsExpanded { get; set; } = false;
     public int Index { get; set; } = -1;  // -1 for folders
-    public int[] PieceRange { get; set; } = Array.Empty<int>();
+    public int[] PieceRange { get; set; } = [];
 
     public CheckBoxState CachedCheckBoxState { get; set; } = CheckBoxState.UncheckedNormal;
 
@@ -87,11 +86,11 @@ public class TorrentFileTree
             return;
         }
         Children.ForEach(child => child.UpdateStateRecursively());
-        var states = Children.Select(c => c.CachedCheckBoxState).Distinct();
-        CachedCheckBoxState = states.Count() == 1 ? states.First() : CheckBoxState.MixedNormal;
+        var states = Children.Select(c => c.CachedCheckBoxState).Distinct().ToList();
+        CachedCheckBoxState = states.Count == 1 ? states.First() : CheckBoxState.MixedNormal;
         Size = Children.Sum(c => c.Size);
         Progress = Children.Sum(c => c.Progress * c.Size) / Size;
-        var priorities = Children.Select(c => c.Priority).Distinct();
-        Priority = priorities.Count() == 1 ? priorities.First() : -1; // -1 means mixed
+        var priorities = Children.Select(c => c.Priority).Distinct().ToList();
+        Priority = priorities.Count == 1 ? priorities.First() : -1; // -1 means mixed
     }
 } 

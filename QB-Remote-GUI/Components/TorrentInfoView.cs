@@ -1,34 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using QB_Remote_GUI.GUI.Models;
+﻿using QB_Remote_GUI.GUI.Models;
 using QB_Remote_GUI.API.Models.Torrents;
+using QB_Remote_GUI.GUI.Utils;
 
 namespace QB_Remote_GUI.GUI.Components
 {
-    public partial class TorrentInfoView : UserControl
+    public sealed partial class TorrentInfoView : UserControl
     {
-        private readonly Dictionary<string, Label> valueLabels = new Dictionary<string, Label>();
-        private readonly LanguageLoader languageLoader = LanguageLoader.Instance;
+        private readonly Dictionary<string, Label> _valueLabels = new();
+        private readonly LanguageLoader _languageLoader = LanguageLoader.Instance;
 
         public TorrentInfoView()
         {
             InitializeComponent();
 
-            InitializeLabels();
+            InitializeTransferLabels();
             InitializeTorrentLabels();
 
             Controls.Add(tableLayoutPanelTransfer);
             Controls.Add(tableLayoutPanelTorrent);
         }
 
-        private void InitializeLabels()
+        private void InitializeTransferLabels()
         {
             // Column 1,2
             AddTransferLabelPair(0, 0, "State");
@@ -63,7 +55,7 @@ namespace QB_Remote_GUI.GUI.Components
             // Create and add title label
             var titleLabel = new Label
             {
-                Text = languageLoader.GetTranslation(key),
+                Text = _languageLoader.GetTranslation(key),
                 AutoSize = true,
                 Anchor = AnchorStyles.Left | AnchorStyles.Right,
                 TextAlign = ContentAlignment.MiddleLeft
@@ -73,13 +65,13 @@ namespace QB_Remote_GUI.GUI.Components
             // Create and add value label
             var valueLabel = new Label
             {
-                Text = "-",
+                Text = "",
                 AutoSize = true,
                 Anchor = AnchorStyles.Left | AnchorStyles.Right,
                 TextAlign = ContentAlignment.MiddleLeft
             };
             tableLayoutPanelTransfer.Controls.Add(valueLabel, col + 1, row);
-            valueLabels[$"Transfer_{key}"] = valueLabel;
+            _valueLabels[$"Transfer_{key}"] = valueLabel;
         }
 
         private void InitializeTorrentLabels()
@@ -105,7 +97,7 @@ namespace QB_Remote_GUI.GUI.Components
             // Create and add title label
             var titleLabel = new Label
             {
-                Text = languageLoader.GetTranslation(key),
+                Text = _languageLoader.GetTranslation(key),
                 AutoSize = true,
                 Anchor = AnchorStyles.Left | AnchorStyles.Right,
                 TextAlign = ContentAlignment.MiddleLeft
@@ -115,70 +107,53 @@ namespace QB_Remote_GUI.GUI.Components
             // Create and add value label
             var valueLabel = new Label
             {
-                Text = "-",
+                Text = "",
                 AutoSize = true,
                 Anchor = AnchorStyles.Left | AnchorStyles.Right,
                 TextAlign = ContentAlignment.MiddleLeft
             };
             tableLayoutPanelTorrent.Controls.Add(valueLabel, col + 1, row);
-            valueLabels[$"Torrent_{key}"] = valueLabel;
+            _valueLabels[$"Torrent_{key}"] = valueLabel;
         }
 
         public void Render(TorrentInfo info, TorrentProperties properties)
         {
-            if (properties == null) return;
-
             // Update transfer panel labels
-            valueLabels["Transfer_State"].Text = info.State; // State needs to be provided separately
-            valueLabels["Transfer_Downloaded"].Text = FormatBytes(properties.TotalDownloaded);
-            valueLabels["Transfer_Download speed"].Text = $"{FormatBytes(properties.DownloadSpeed)}/s";
-            valueLabels["Transfer_Down limit"].Text = properties.DownloadLimit > 0 ? $"{FormatBytes(properties.DownloadLimit)}/s" : "∞";
-            valueLabels["Transfer_Seeds"].Text = $"{info.ConnectedSeeds}/{info.TotalSeeds}"; // Seeds count needs to be provided separately
-            valueLabels["Transfer_Tracker"].Text = "-"; // Tracker info needs to be provided separately
+            _valueLabels["Transfer_State"].Text = info.State; // State needs to be provided separately
+            _valueLabels["Transfer_Downloaded"].Text = FormattingUtils.FormatSize(properties.TotalDownloaded);
+            _valueLabels["Transfer_Download speed"].Text = $"{FormattingUtils.FormatSize(properties.DownloadSpeed)}/s";
+            _valueLabels["Transfer_Down limit"].Text = properties.DownloadLimit > 0 ? $"{FormattingUtils.FormatSize(properties.DownloadLimit)}/s" : "∞";
+            _valueLabels["Transfer_Seeds"].Text = $"{info.ConnectedSeeds}/{info.TotalSeeds}"; // Seeds count needs to be provided separately
+            _valueLabels["Transfer_Tracker"].Text = "-"; // Tracker info needs to be provided separately
 
-            valueLabels["Transfer_Error"].Text = "-"; // Error needs to be provided separately
-            valueLabels["Transfer_Uploaded"].Text = FormatBytes(properties.TotalUploaded);
-            valueLabels["Transfer_Upload speed"].Text = $"{FormatBytes(properties.UploadSpeed)}/s";
-            valueLabels["Transfer_Up limit"].Text = properties.UploadLimit > 0 ? $"{FormatBytes(properties.UploadLimit)}/s" : "∞";
-            valueLabels["Transfer_Peers"].Text = $"{info.ConnectedPeers}/{info.TotalPeers}";
-            valueLabels["Transfer_Tracker updated on"].Text = "-"; // Tracker update time needs to be provided separately
+            _valueLabels["Transfer_Error"].Text = "-"; // Error needs to be provided separately
+            _valueLabels["Transfer_Uploaded"].Text = FormattingUtils.FormatSize(properties.TotalUploaded);
+            _valueLabels["Transfer_Upload speed"].Text = $"{FormattingUtils.FormatSize(properties.UploadSpeed)}/s";
+            _valueLabels["Transfer_Up limit"].Text = properties.UploadLimit > 0 ? $"{FormattingUtils.FormatSize(properties.UploadLimit)}/s" : "∞";
+            _valueLabels["Transfer_Peers"].Text = $"{info.ConnectedPeers}/{info.TotalPeers}";
+            _valueLabels["Transfer_Tracker updated on"].Text = "-"; // Tracker update time needs to be provided separately
 
-            valueLabels["Transfer_Remaining"].Text = FormatBytes(properties.TotalSize - properties.TotalDownloaded);
-            valueLabels["Transfer_Wasted"].Text = FormatBytes(properties.TotalWasted);
-            valueLabels["Transfer_Share ratio"].Text = properties.ShareRatio.ToString("F2");
-            valueLabels["Transfer_Max peers"].Text = properties.ConnectionCountLimit.ToString();
-            valueLabels["Transfer_Last active"].Text = UnixTimeToDateTime(properties.LastSeen).ToString("g");
+            _valueLabels["Transfer_Remaining"].Text = FormattingUtils.FormatSize(properties.TotalSize - properties.TotalDownloaded);
+            _valueLabels["Transfer_Wasted"].Text = FormattingUtils.FormatSize(properties.TotalWasted);
+            _valueLabels["Transfer_Share ratio"].Text = properties.ShareRatio.ToString("F2");
+            _valueLabels["Transfer_Max peers"].Text = properties.ConnectionCountLimit.ToString();
+            _valueLabels["Transfer_Last active"].Text = UnixTimeToDateTime(properties.LastSeen).ToString("g");
 
             // Update torrent panel labels
-            valueLabels["Torrent_Save path"].Text = properties.SavePath;
-            valueLabels["Torrent_Total size"].Text = $"{FormatBytes(properties.TotalSize)} ({FormatBytes(properties.TotalDownloaded)})";
-            valueLabels["Torrent_Info hash v1"].Text = properties.InfohashV1;
-            valueLabels["Torrent_Info hash v2"].Text = properties.InfohashV2;
-            valueLabels["Torrent_Added on"].Text = UnixTimeToDateTime(properties.AdditionDate).ToString("g");
-            valueLabels["Torrent_Magnet link"].Text = info.MagnetUri;
+            _valueLabels["Torrent_Save path"].Text = properties.SavePath;
+            _valueLabels["Torrent_Total size"].Text = $"{FormattingUtils.FormatSize(properties.TotalSize)} ({FormattingUtils.FormatSize(properties.TotalDownloaded)})";
+            _valueLabels["Torrent_Info hash v1"].Text = properties.InfohashV1;
+            _valueLabels["Torrent_Info hash v2"].Text = properties.InfohashV2;
+            _valueLabels["Torrent_Added on"].Text = UnixTimeToDateTime(properties.AdditionDate).ToString("g");
+            _valueLabels["Torrent_Magnet link"].Text = info.MagnetUri;
 
-            valueLabels["Torrent_Created on"].Text = UnixTimeToDateTime(properties.CreationDate).ToString("g");
-            valueLabels["Torrent_Pieces"].Text = $"{properties.PiecesHave} x {FormatBytes(properties.PieceSize)} ({properties.PiecesNum})"; // Piece count needs to be provided separately
-            valueLabels["Torrent_Comments"].Text = properties.Comment;
-            valueLabels["Torrent_Completed on"].Text = properties.CompletionDate > 0 
+            _valueLabels["Torrent_Created on"].Text = UnixTimeToDateTime(properties.CreationDate).ToString("g");
+            _valueLabels["Torrent_Pieces"].Text = $"{properties.PiecesHave} x {FormattingUtils.FormatSize(properties.PieceSize)} ({properties.PiecesNum})"; // Piece count needs to be provided separately
+            _valueLabels["Torrent_Comments"].Text = properties.Comment;
+            _valueLabels["Torrent_Completed on"].Text = properties.CompletionDate > 0 
                 ? UnixTimeToDateTime(properties.CompletionDate).ToString("g") 
                 : "-";
-            valueLabels["Torrent_Tags"].Text = info.Tags;
-        }
-
-        private string FormatBytes(long bytes)
-        {
-            string[] sizes = { "B", "KB", "MB", "GB", "TB" };
-            int order = 0;
-            double size = bytes;
-
-            while (size >= 1024 && order < sizes.Length - 1)
-            {
-                order++;
-                size /= 1024;
-            }
-
-            return $"{size:0.##} {sizes[order]}";
+            _valueLabels["Torrent_Tags"].Text = info.Tags;
         }
 
         private DateTime UnixTimeToDateTime(long unixTime)

@@ -2,9 +2,9 @@
 
 namespace QB_Remote_GUI.GUI.Models;
 
-public class TorrentInfoComparer
+public static class TorrentInfoComparer
 {
-    static internal int Compare(TorrentInfo a, TorrentInfo b, string columnName)
+    internal static int Compare(TorrentInfo a, TorrentInfo b, string columnName)
     {
         return columnName switch
         {

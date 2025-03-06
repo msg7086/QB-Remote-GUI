@@ -1,5 +1,4 @@
 using QB_Remote_GUI.API.Models.Torrents;
-using QB.Remote.GUI.Models;
 using QB_Remote_GUI.GUI.Forms;
 using QB_Remote_GUI.GUI.Models;
 using QB_Remote_GUI.GUI.Utils;

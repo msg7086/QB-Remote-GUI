@@ -14,7 +14,7 @@ namespace QB_Remote_GUI.GUI.Forms
 {
     public partial class ConnectionManager : Form
     {
-        public readonly List<ConnectionProfile> _duplicatedConnections;
+        public readonly List<ConnectionProfile> DuplicatedConnections;
         private ConnectionProfile? _selectedConnection;
 
         public ConnectionProfile? SelectedConnection => _selectedConnection;
@@ -22,7 +22,7 @@ namespace QB_Remote_GUI.GUI.Forms
         public ConnectionManager(List<ConnectionProfile> connections)
         {
             InitializeComponent();
-            _duplicatedConnections = connections.Select(c => new ConnectionProfile
+            DuplicatedConnections = connections.Select(c => new ConnectionProfile
             {
                 Name = c.Name,
                 Host = c.Host,
@@ -66,9 +66,9 @@ namespace QB_Remote_GUI.GUI.Forms
         {
             // Update ComboBox
             comboBox1.DataSource = null;
-            comboBox1.DataSource = _duplicatedConnections.OrderByDescending(c => c.LastUsed).ToList();
+            comboBox1.DataSource = DuplicatedConnections.OrderByDescending(c => c.LastUsed).ToList();
             comboBox1.DisplayMember = "Name";
-            if (_duplicatedConnections.Count > 0)
+            if (DuplicatedConnections.Count > 0)
             {
                 comboBox1.SelectedIndex = 0;
             }
@@ -137,25 +137,23 @@ namespace QB_Remote_GUI.GUI.Forms
             input.AcceptButton = buttonOk;
             input.CancelButton = buttonCancel;
 
-            if (input.ShowDialog() == DialogResult.OK)
+            if (input.ShowDialog() != DialogResult.OK) return;
+            var newName = textBox.Text.Trim();
+
+            if (string.IsNullOrEmpty(newName))
             {
-                var newName = textBox.Text.Trim();
-
-                if (string.IsNullOrEmpty(newName))
-                {
-                    MessageBox.Show("名称不能为空", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-
-                if (_duplicatedConnections.Any(c => c != _selectedConnection && c.Name == newName))
-                {
-                    MessageBox.Show("该名称已存在", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-
-                _selectedConnection.Name = newName;
-                RefreshConnectionsList();
+                MessageBox.Show("名称不能为空", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
             }
+
+            if (DuplicatedConnections.Any(c => c != _selectedConnection && c.Name == newName))
+            {
+                MessageBox.Show("该名称已存在", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            _selectedConnection.Name = newName;
+            RefreshConnectionsList();
         }
 
         private void BtnDeleteConnection_Click(object? sender, EventArgs e)
@@ -168,7 +166,7 @@ namespace QB_Remote_GUI.GUI.Forms
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question) == DialogResult.Yes)
             {
-                _duplicatedConnections.Remove(_selectedConnection);
+                DuplicatedConnections.Remove(_selectedConnection);
                 RefreshConnectionsList();
             }
         }
@@ -187,24 +185,22 @@ namespace QB_Remote_GUI.GUI.Forms
 
         private void ConnectionManager_Load(object sender, EventArgs e)
         {
-            if (_duplicatedConnections.Count == 0)
+            if (DuplicatedConnections.Count > 0) return;
+            DuplicatedConnections.Add(new ConnectionProfile
             {
-                _duplicatedConnections.Add(new ConnectionProfile
-                {
-                    Name = "Default Connection",
-                    Host = "localhost",
-                    Port = 8080,
-                    Username = "",
-                    Password = "",
-                    TimeoutSeconds = 30,
-                    UseSsl = false,
-                    LastUsed = DateTime.Now
-                });
-                RefreshConnectionsList();
-            }
+                Name = "Default Connection",
+                Host = "localhost",
+                Port = 8080,
+                Username = "",
+                Password = "",
+                TimeoutSeconds = 30,
+                UseSsl = false,
+                LastUsed = DateTime.Now
+            });
+            RefreshConnectionsList();
         }
 
-        private void UpdateConnectionOnTextChanged(object sender, EventArgs e)
+        private void UpdateConnectionOnTextChanged(object? sender, EventArgs e)
         {
             if (_selectedConnection == null) return;
 

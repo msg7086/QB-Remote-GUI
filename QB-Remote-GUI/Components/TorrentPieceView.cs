@@ -10,22 +10,22 @@ using System.Windows.Forms;
 
 namespace QB_Remote_GUI.GUI.Components
 {
-    public partial class TorrentPieceView : UserControl
+    public sealed partial class TorrentPieceView : UserControl
     {
-        private const int FIXED_HEIGHT = 48; // Configurable fixed height
-        private const int MIN_BLOCK_SIZE = 6;
-        private const int MAX_BLOCK_SIZE = 16;
-        private int[] _data;
-        private Color _colorNotDownloaded = Color.White;
-        private Color _colorDownloading = Color.Blue;
-        private Color _colorDownloaded = Color.LightGreen;
-        private Color _colorSpace = SystemColors.Control;
+        private const int FixedHeight = 48; // Configurable fixed height
+        private const int MinBlockSize = 6;
+        private const int MaxBlockSize = 16;
+        private int[]? _data;
+        private readonly Color _colorNotDownloaded = Color.White;
+        private readonly Color _colorDownloading = Color.Blue;
+        private readonly Color _colorDownloaded = Color.LightGreen;
+        private readonly Color _colorSpace = SystemColors.Control;
 
         public TorrentPieceView()
         {
             InitializeComponent();
-            this.Height = FIXED_HEIGHT;
-            this.DoubleBuffered = true;
+            Height = FixedHeight;
+            DoubleBuffered = true;
         }
 
         public void Render(int[] data)
@@ -36,21 +36,22 @@ namespace QB_Remote_GUI.GUI.Components
             Invalidate();
         }
 
-        private int getOptimalBlockSize()
+        private int GetOptimalBlockSize()
         {
-            int minBlockSize = MIN_BLOCK_SIZE;
-            int maxBlockSize = MAX_BLOCK_SIZE;
+            if (_data == null || _data.Length == 0) return MaxBlockSize;
+
+            int minBlockSize = MinBlockSize;
+            int maxBlockSize = MaxBlockSize;
             int optimalBlockSize = minBlockSize;
             while (minBlockSize <= maxBlockSize)
             {
                 int midBlockSize = (minBlockSize + maxBlockSize) / 2;
 
-                int blocksPerColumn = FIXED_HEIGHT / midBlockSize;
+                int blocksPerColumn = FixedHeight / midBlockSize;
                 int requiredColumns = (int)Math.Ceiling((double)_data.Length / blocksPerColumn);
                 if (requiredColumns * midBlockSize > Width)
                 {
                     maxBlockSize = midBlockSize - 1;
-                    continue;
                 }
                 else
                 {
@@ -65,9 +66,9 @@ namespace QB_Remote_GUI.GUI.Components
         {
             if (_data == null || _data.Length == 0) return;
 
-            int optimalBlockSize = getOptimalBlockSize();
+            int optimalBlockSize = GetOptimalBlockSize();
 
-            int blocksPerColumn = FIXED_HEIGHT / optimalBlockSize;
+            int blocksPerColumn = FixedHeight / optimalBlockSize;
             int totalColumns = Width / optimalBlockSize;
             int totalBlocks = blocksPerColumn * totalColumns;
             int valuesPerBlock = 1;
@@ -77,42 +78,34 @@ namespace QB_Remote_GUI.GUI.Components
             if (valuesPerBlock > 1)
                 totalRealBlocks = (int)Math.Ceiling((double)_data.Length / valuesPerBlock);
 
-            using (var brush = new SolidBrush(Color.White))
+            using var brush = new SolidBrush(Color.White);
+            for (int i = 0; i < totalRealBlocks; i++)
             {
-                for (int i = 0; i < totalRealBlocks; i++)
+                int column = i / blocksPerColumn;
+                int row = i % blocksPerColumn;
+
+                int x = column * optimalBlockSize;
+                int y = row * optimalBlockSize;
+
+                // If we need to combine multiple values into one block
+                if (valuesPerBlock > 1)
                 {
-                    int column = i / blocksPerColumn;
-                    int row = i % blocksPerColumn;
-
-                    int x = column * optimalBlockSize;
-                    int y = row * optimalBlockSize;
-
-                    // If we need to combine multiple values into one block
-                    if (valuesPerBlock > 1)
+                    var values = new List<int>();
+                    for (int j = 0; j < valuesPerBlock && i * valuesPerBlock + j < _data.Length; j++)
                     {
-                        var values = new List<int>();
-                        for (int j = 0; j < valuesPerBlock && (i * valuesPerBlock + j) < _data.Length; j++)
-                        {
-                            values.Add(_data[i * valuesPerBlock + j]);
-                        }
-
-                        brush.Color = GetCombinedColor(values);
-                    }
-                    else
-                    {
-                        brush.Color = GetColor(_data[i]);
+                        values.Add(_data[i * valuesPerBlock + j]);
                     }
 
-                    if (x + optimalBlockSize <= Width) // Only draw if within bounds
-                    {
-                        e.Graphics.FillRectangle(brush, x, y, optimalBlockSize - 1, optimalBlockSize - 1);
-                    }
+                    brush.Color = GetCombinedColor(values);
+                }
+                else
+                {
+                    brush.Color = GetColor(_data[i]);
+                }
 
-                    // // debug
-                    // if (i >= _data.Length / 2)
-                    // {
-                    //     break;
-                    // }
+                if (x + optimalBlockSize <= Width) // Only draw if within bounds
+                {
+                    e.Graphics.FillRectangle(brush, x, y, optimalBlockSize - 1, optimalBlockSize - 1);
                 }
             }
         }

@@ -14,10 +14,10 @@ namespace QB_Remote_GUI.GUI.Forms
     public partial class ListViewColumnSelector : Form
     {
         private ListView _sourceListView;
-        private List<ColumnInfo> _columns = new();
+        private readonly List<ColumnInfo> _columns = [];
         public List<ColumnInfo> SelectedColumns => _columns;
 
-        public ListViewColumnSelector(ListView sourceListView, List<ColumnInfo> existingColumns = null)
+        public ListViewColumnSelector(ListView sourceListView, List<ColumnInfo>? existingColumns = null)
         {
             InitializeComponent();
             InitializeControls();
@@ -76,7 +76,8 @@ namespace QB_Remote_GUI.GUI.Forms
             for (int i = 0; i < listColumns.Items.Count; i++)
             {
                 var item = listColumns.Items[i];
-                var column = (ColumnInfo)item.Tag;
+                var column = item.Tag as ColumnInfo;
+                if (column == null) continue;
                 column.IsVisible = item.Checked;
             }
 
@@ -121,8 +122,8 @@ namespace QB_Remote_GUI.GUI.Forms
 
     public class ColumnInfo
     {
-        public string Name { get; set; }
-        public string Text { get; set; }
+        public string? Name { get; set; }
+        public string? Text { get; set; }
         public int Width { get; set; }
         public bool IsVisible { get; set; }
     }

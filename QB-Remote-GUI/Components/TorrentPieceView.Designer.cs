@@ -1,6 +1,6 @@
 ﻿namespace QB_Remote_GUI.GUI.Components
 {
-    partial class TorrentPieceView
+    sealed partial class TorrentPieceView
     {
         /// <summary> 
         /// 必需的设计器变量。

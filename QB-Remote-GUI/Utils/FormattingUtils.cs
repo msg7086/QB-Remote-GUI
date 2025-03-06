@@ -1,5 +1,3 @@
-using System;
-
 namespace QB_Remote_GUI.GUI.Utils
 {
     public static class FormattingUtils
