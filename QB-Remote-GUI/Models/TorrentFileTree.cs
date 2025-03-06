@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Windows.Forms.VisualStyles;
-using QB.Remote.API.Models.Torrents;
+using QB_Remote_GUI.API.Models.Torrents;
 
 namespace QB.Remote.GUI.Models;
 

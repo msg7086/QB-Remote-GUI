@@ -1,12 +1,12 @@
 using System.Globalization;
 using Microsoft.Extensions.Options;
-using QB.Remote.API.Extensions;
-using QB.Remote.API.Interfaces;
-using QB.Remote.API.Models.Sync;
-using QB.Remote.API.Models.Torrents;
-using QB.Remote.API.Models.Transfer;
+using QB_Remote_GUI.API.Interfaces;
+using QB_Remote_GUI.API.Models.Sync;
+using QB_Remote_GUI.API.Models.Torrents;
+using QB_Remote_GUI.API.Models.Transfer;
+using QB_Remote_GUI.API.Extensions;
 
-namespace QB.Remote.API.Clients;
+namespace QB_Remote_GUI.API.Clients;
 
 /// <summary>
 /// Client for interacting with qBittorrent WebUI API

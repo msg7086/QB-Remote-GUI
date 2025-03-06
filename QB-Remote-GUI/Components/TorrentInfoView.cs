@@ -7,10 +7,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using QB.Remote.API.Models.Torrents;
-using QB_Remote_GUI.Models;
+using QB_Remote_GUI.GUI.Models;
+using QB_Remote_GUI.API.Models.Torrents;
 
-namespace QB_Remote_GUI.Components
+namespace QB_Remote_GUI.GUI.Components
 {
     public partial class TorrentInfoView : UserControl
     {

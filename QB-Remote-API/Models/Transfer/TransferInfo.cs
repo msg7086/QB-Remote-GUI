@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace QB.Remote.API.Models.Transfer;
+namespace QB_Remote_GUI.API.Models.Transfer;
 
 /// <summary>
 /// Represents global transfer information

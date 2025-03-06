@@ -1,4 +1,4 @@
-﻿namespace QB_Remote_GUI.Forms
+﻿namespace QB_Remote_GUI.GUI.Forms
 {
     partial class ConnectionManager
     {

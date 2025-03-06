@@ -1,8 +1,8 @@
 using System.Net.Http.Json;
 using System.Text.Json;
-using QB.Remote.API.Exceptions;
+using QB_Remote_GUI.API.Exceptions;
 
-namespace QB.Remote.API.Extensions;
+namespace QB_Remote_GUI.API.Extensions;
 
 /// <summary>
 /// Extension methods for HttpClient

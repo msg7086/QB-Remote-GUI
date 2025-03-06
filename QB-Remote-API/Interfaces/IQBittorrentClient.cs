@@ -1,8 +1,8 @@
-using QB.Remote.API.Models.Sync;
-using QB.Remote.API.Models.Torrents;
-using QB.Remote.API.Models.Transfer;
+using QB_Remote_GUI.API.Models.Sync;
+using QB_Remote_GUI.API.Models.Torrents;
+using QB_Remote_GUI.API.Models.Transfer;
 
-namespace QB.Remote.API.Interfaces;
+namespace QB_Remote_GUI.API.Interfaces;
 
 /// <summary>
 /// Interface for interacting with qBittorrent WebUI API

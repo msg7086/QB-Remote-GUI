@@ -1,4 +1,4 @@
-﻿namespace QB_Remote_GUI;
+﻿namespace QB_Remote_GUI.GUI;
 
 public partial class MainForm
 {

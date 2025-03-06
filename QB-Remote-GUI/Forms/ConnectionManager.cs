@@ -8,9 +8,9 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using QB_Remote_GUI.Models;
+using QB_Remote_GUI.GUI.Models;
 
-namespace QB_Remote_GUI.Forms
+namespace QB_Remote_GUI.GUI.Forms
 {
     public partial class ConnectionManager : Form
     {

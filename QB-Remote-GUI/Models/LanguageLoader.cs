@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace QB_Remote_GUI.Models
+namespace QB_Remote_GUI.GUI.Models
 {
     public class LanguageLoader
     {

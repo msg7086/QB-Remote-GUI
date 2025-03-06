@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
-using QB.Remote.API.Models.Torrents;
+using QB_Remote_GUI.API.Models.Torrents;
 
-namespace QB.Remote.API.Models.Sync;
+namespace QB_Remote_GUI.API.Models.Sync;
 
 /// <summary>
 /// Represents main data from qBittorrent

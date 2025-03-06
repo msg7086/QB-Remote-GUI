@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace QB_Remote_GUI.Models;
+namespace QB_Remote_GUI.GUI.Models;
 
 public class ConnectionProfile
 {

@@ -1,4 +1,4 @@
-namespace QB.Remote.API.Exceptions;
+namespace QB_Remote_GUI.API.Exceptions;
 
 /// <summary>
 /// Exception thrown when an error occurs while interacting with qBittorrent WebUI

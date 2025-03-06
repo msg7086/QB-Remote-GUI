@@ -1,10 +1,10 @@
-using QB.Remote.API.Models.Torrents;
+using QB_Remote_GUI.API.Models.Torrents;
 using QB.Remote.GUI.Models;
-using QB_Remote_GUI.Utils;
-using QB_Remote_GUI.Forms;
-using QB_Remote_GUI.Models;
+using QB_Remote_GUI.GUI.Forms;
+using QB_Remote_GUI.GUI.Models;
+using QB_Remote_GUI.GUI.Utils;
 
-namespace QB_Remote_GUI.Views;
+namespace QB_Remote_GUI.GUI.Views;
 
 public class FileListViewManager
 {

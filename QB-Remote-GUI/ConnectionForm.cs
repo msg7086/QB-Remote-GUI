@@ -1,7 +1,7 @@
-using QB.Remote.API.Clients;
-using QB.Remote.API.Models;
+using QB_Remote_GUI.API.Clients;
+using QB_Remote_GUI.API.Models;
 
-namespace QB_Remote_GUI;
+namespace QB_Remote_GUI.GUI;
 
 public partial class ConnectionForm : Form
 {

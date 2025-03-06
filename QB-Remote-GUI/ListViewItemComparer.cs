@@ -1,7 +1,7 @@
-﻿using QB_Remote_GUI.Models;
-using QB.Remote.API.Models.Torrents;
+﻿using QB_Remote_GUI.GUI.Models;
+using QB_Remote_GUI.API.Models.Torrents;
 
-namespace QB_Remote_GUI;
+namespace QB_Remote_GUI.GUI;
 
 internal class ListViewItemComparer(int column, bool ascending) : System.Collections.IComparer
 {

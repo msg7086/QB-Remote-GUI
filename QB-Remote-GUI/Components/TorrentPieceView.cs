@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace QB_Remote_GUI.Components
+namespace QB_Remote_GUI.GUI.Components
 {
     public partial class TorrentPieceView : UserControl
     {

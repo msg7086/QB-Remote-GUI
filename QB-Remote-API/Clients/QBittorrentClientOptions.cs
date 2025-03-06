@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace QB.Remote.API.Clients;
+namespace QB_Remote_GUI.API.Clients;
 
 /// <summary>
 /// Configuration options for the qBittorrent client

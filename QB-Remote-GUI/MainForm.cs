@@ -1,14 +1,13 @@
-using QB.Remote.GUI.Models;
 using System.Text.RegularExpressions;
-using QB_Remote_GUI.Forms;
-using QB_Remote_GUI.Models;
-using QB_Remote_GUI.Views;
-using QB.Remote.API.Clients;
-using QB.Remote.API.Interfaces;
-using QB.Remote.API.Models.Sync;
-using QB.Remote.API.Models.Torrents;
+using QB_Remote_GUI.GUI.Forms;
+using QB_Remote_GUI.GUI.Models;
+using QB_Remote_GUI.GUI.Views;
+using QB_Remote_GUI.API.Clients;
+using QB_Remote_GUI.API.Interfaces;
+using QB_Remote_GUI.API.Models.Sync;
+using QB_Remote_GUI.API.Models.Torrents;
 
-namespace QB_Remote_GUI
+namespace QB_Remote_GUI.GUI
 {
     public partial class MainForm : Form
     {
@@ -70,12 +69,19 @@ namespace QB_Remote_GUI
             tsddManageConnection.Text = lang.GetTranslation("Manage connections") + "...";
 
             // Set up tool strip buttons
+            toolStrip.ImageList = imgToolStrip;
             tsbspConnect.Text = lang.GetTranslation("Connect to Transmission");
+            tsbspConnect.ImageIndex = 0;
             tsbDisconnect.Text = lang.GetTranslation("Disconnect from Transmission");
+            tsbDisconnect.ImageIndex = 1;
             tsbAddTorrent.Text = lang.GetTranslation("&Add torrent");
+            tsbAddTorrent.ImageIndex = 2;
             tsbStartTorrent.Text = lang.GetTranslation("Start");
+            tsbStartTorrent.ImageIndex = 4;
             tsbPauseTorrent.Text = lang.GetTranslation("Stop");
+            tsbPauseTorrent.ImageIndex = 5;
             tsbDeleteTorrent.Text = lang.GetTranslation("Remove");
+            tsbDeleteTorrent.ImageIndex = 6;
             tsbManageConnection.Text = lang.GetTranslation("Manage connections") + "...";
 
             // Set up tabs

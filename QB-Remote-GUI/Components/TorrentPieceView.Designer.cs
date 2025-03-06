@@ -1,4 +1,4 @@
-﻿namespace QB_Remote_GUI.Components
+﻿namespace QB_Remote_GUI.GUI.Components
 {
     partial class TorrentPieceView
     {

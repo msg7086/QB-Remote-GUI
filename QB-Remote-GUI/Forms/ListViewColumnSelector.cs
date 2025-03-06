@@ -1,5 +1,4 @@
-﻿using QB_Remote_GUI.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -8,8 +7,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using QB_Remote_GUI.GUI.Models;
 
-namespace QB_Remote_GUI.Forms
+namespace QB_Remote_GUI.GUI.Forms
 {
     public partial class ListViewColumnSelector : Form
     {

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace QB.Remote.API.Models.Torrents;
+namespace QB_Remote_GUI.API.Models.Torrents;
 
 /// <summary>
 /// Represents peer information from qBittorrent

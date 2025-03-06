@@ -1,8 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
-using QB.Remote.API.Clients;
-using QB.Remote.API.Interfaces;
+using QB_Remote_GUI.API.Clients;
+using QB_Remote_GUI.API.Interfaces;
 
-namespace QB.Remote.API.Extensions;
+namespace QB_Remote_GUI.API.Extensions;
 
 /// <summary>
 /// Extension methods for IServiceCollection

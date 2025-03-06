@@ -1,4 +1,4 @@
-namespace QB.Remote.API.Models.Torrents;
+namespace QB_Remote_GUI.API.Models.Torrents;
 
 /// <summary>
 /// Options for adding a new torrent

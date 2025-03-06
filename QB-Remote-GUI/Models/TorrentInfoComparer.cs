@@ -1,6 +1,6 @@
-﻿using QB.Remote.API.Models.Torrents;
+﻿using QB_Remote_GUI.API.Models.Torrents;
 
-namespace QB_Remote_GUI.Models;
+namespace QB_Remote_GUI.GUI.Models;
 
 public class TorrentInfoComparer
 {
