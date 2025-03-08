@@ -6,6 +6,7 @@ namespace QB_Remote_GUI.GUI.Views;
 
 public class TorrentListViewManager
 {
+    private readonly LanguageLoader _lang;
     private readonly ListView _torrentListView;
     private List<ColumnInfo> _columnConfig = null!;
     private const string ConfigPath = "torrent_columns.json";
@@ -13,6 +14,7 @@ public class TorrentListViewManager
     public TorrentListViewManager(ListView torrentListView)
     {
         _torrentListView = torrentListView;
+        _lang = LanguageLoader.Instance;
         InitializeListView();
     }
 
@@ -31,23 +33,17 @@ public class TorrentListViewManager
 
     private void LoadOrInitializeColumnConfig()
     {
+        InitializeDefaultColumnConfig();
         try
         {
-            if (!File.Exists(ConfigPath))
-            {
-                InitializeDefaultColumnConfig();
-                return;
-            }
+            if (!File.Exists(ConfigPath)) return;
 
             var json = File.ReadAllText(ConfigPath);
             var storedConfig = System.Text.Json.JsonSerializer.Deserialize<List<ColumnInfo>>(json);
-            if (storedConfig == null)
-            {
-                InitializeDefaultColumnConfig();
-                return;
-            }
+            if (storedConfig == null) return;
 
-            _columnConfig = storedConfig;
+            // Merge stored config with default config
+            _columnConfig = ColumnConfigMerger.MergeColumnConfigs(_columnConfig, storedConfig);
         }
         catch
         {
@@ -57,31 +53,30 @@ public class TorrentListViewManager
 
     private void InitializeDefaultColumnConfig()
     {
-        var lang = LanguageLoader.Instance;
         _columnConfig =
         [
-            new ColumnInfo { Name = "nameColumn", Text = lang.GetTranslation("Name"), Width = 500, IsVisible = true },
-            new ColumnInfo { Name = "sizeDownloadColumn", Text = lang.GetTranslation("Size to download"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "sizeColumn", Text = lang.GetTranslation("Size"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "progressColumn", Text = lang.GetTranslation("Done"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "downloadedColumn", Text = lang.GetTranslation("Downloaded"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "uploadedColumn", Text = lang.GetTranslation("Uploaded"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "statusColumn", Text = lang.GetTranslation("Status"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "seedsColumn", Text = lang.GetTranslation("Seeds"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "peersColumn", Text = lang.GetTranslation("Peers"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "downloadSpeedColumn", Text = lang.GetTranslation("Download speed"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "uploadSpeedColumn", Text = lang.GetTranslation("Upload speed"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "etaColumn", Text = lang.GetTranslation("ETA"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "ratioColumn", Text = lang.GetTranslation("Ratio"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "addedOnColumn", Text = lang.GetTranslation("Added on"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "completedOnColumn", Text = lang.GetTranslation("Completed on"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "lastActiveColumn", Text = lang.GetTranslation("Last active"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "pathColumn", Text = lang.GetTranslation("Last active"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "priorityColumn", Text = lang.GetTranslation("Priority"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "seedingTimeColumn", Text = lang.GetTranslation("Seeding time"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "sizeLeftColumn", Text = lang.GetTranslation("Size left"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "isPrivateColumn", Text = lang.GetTranslation("Private"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "labelColumn", Text = lang.GetTranslation("Label"), Width = 100, IsVisible = true }
+            new ColumnInfo { Name = "nameColumn", Text = _lang.GetTranslation("Name"), Width = 500, IsVisible = true },
+            new ColumnInfo { Name = "sizeDownloadColumn", Text = _lang.GetTranslation("Size to download"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "sizeColumn", Text = _lang.GetTranslation("Size"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "progressColumn", Text = _lang.GetTranslation("Done"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "downloadedColumn", Text = _lang.GetTranslation("Downloaded"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "uploadedColumn", Text = _lang.GetTranslation("Uploaded"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "statusColumn", Text = _lang.GetTranslation("Status"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "seedsColumn", Text = _lang.GetTranslation("Seeds"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "peersColumn", Text = _lang.GetTranslation("Peers"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "downloadSpeedColumn", Text = _lang.GetTranslation("Download speed"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "uploadSpeedColumn", Text = _lang.GetTranslation("Upload speed"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "etaColumn", Text = _lang.GetTranslation("ETA"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "ratioColumn", Text = _lang.GetTranslation("Ratio"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "addedOnColumn", Text = _lang.GetTranslation("Added on"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "completedOnColumn", Text = _lang.GetTranslation("Completed on"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "lastActiveColumn", Text = _lang.GetTranslation("Last active"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "pathColumn", Text = _lang.GetTranslation("Last active"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "priorityColumn", Text = _lang.GetTranslation("Priority"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "seedingTimeColumn", Text = _lang.GetTranslation("Seeding time"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "sizeLeftColumn", Text = _lang.GetTranslation("Size left"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "isPrivateColumn", Text = _lang.GetTranslation("Private"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "labelColumn", Text = _lang.GetTranslation("Label"), Width = 100, IsVisible = true }
         ];
     }
 

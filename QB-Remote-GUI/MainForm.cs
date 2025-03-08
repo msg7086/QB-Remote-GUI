@@ -13,18 +13,18 @@ namespace QB_Remote_GUI.GUI
 {
     public partial class MainForm : Form
     {
-        private LanguageLoader lang;
+        private readonly LanguageLoader _lang;
         
         private IQBittorrentClient? _client;
         private int _lastRid;
-        private Dictionary<string, TorrentInfo> _torrents = [];
+        private readonly Dictionary<string, TorrentInfo> _torrents = [];
         private TorrentInfo? _selectedTorrent;
         private bool _isConnected;
         private ConnectionProfile? _currentConnection;
         // hook to trigger event when timerSync is ticked
 
         // Peer data management
-        private Dictionary<string, PeerInfo> _peers = [];
+        private readonly Dictionary<string, PeerInfo> _peers = [];
         private int _lastPeerRid;
 
         // Connection management
@@ -41,7 +41,7 @@ namespace QB_Remote_GUI.GUI
 
         public MainForm()
         {
-            lang = LanguageLoader.GetInstance();
+            _lang = LanguageLoader.GetInstance();
 
             // Set up connections path
             _connectionsPath = Path.Combine(
@@ -63,50 +63,36 @@ namespace QB_Remote_GUI.GUI
         private void InitializeControls()
         {
             // Set up menu items
-            menuTorrent.Text = lang.GetTranslation("&Torrent");
-            menuitemConnect.Text = lang.GetTranslation("Connect to Transmission") + "...";
-            menuitemDisconnect.Text = lang.GetTranslation("Disconnect from Transmission");
-            menuitemAddTorrent.Text = lang.GetTranslation("&Add torrent") + "...";
-            menuitemStartTorrent.Text = lang.GetTranslation("Start");
-            menuitemPauseTorrent.Text = lang.GetTranslation("Stop");
-            menuitemDeleteTorrent.Text = lang.GetTranslation("Remove") + "...";
-            menuitemExit.Text = lang.GetTranslation("E&xit");
-            tsddManageConnection.Text = lang.GetTranslation("Manage connections") + "...";
+            menuTorrent.Text = _lang.GetTranslation("&Torrent");
+            menuitemConnect.Text = _lang.GetTranslation("Connect to Transmission") + LanguageLoader.Dots;
+            menuitemDisconnect.Text = _lang.GetTranslation("Disconnect from Transmission");
+            menuitemAddTorrent.Text = _lang.GetTranslation("&Add torrent") + LanguageLoader.Dots;
+            menuitemStartTorrent.Text = _lang.GetTranslation("Start");
+            menuitemPauseTorrent.Text = _lang.GetTranslation("Stop");
+            menuitemDeleteTorrent.Text = _lang.GetTranslation("Remove") + LanguageLoader.Dots;
+            menuitemExit.Text = _lang.GetTranslation("E&xit");
+            tsddManageConnection.Text = _lang.GetTranslation("Manage connections") + LanguageLoader.Dots;
 
-            // Set up tool strip buttons
-            toolStrip.ImageList = imgToolStrip;
-            tsbspConnect.Text = lang.GetTranslation("Connect to Transmission");
-            tsbspConnect.ImageIndex = 0;
-            tsbDisconnect.Text = lang.GetTranslation("Disconnect from Transmission");
-            tsbDisconnect.ImageIndex = 1;
-            tsbAddTorrent.Text = lang.GetTranslation("&Add torrent");
-            tsbAddTorrent.ImageIndex = 2;
-            tsbStartTorrent.Text = lang.GetTranslation("Start");
-            tsbStartTorrent.ImageIndex = 4;
-            tsbPauseTorrent.Text = lang.GetTranslation("Stop");
-            tsbPauseTorrent.ImageIndex = 5;
-            tsbDeleteTorrent.Text = lang.GetTranslation("Remove");
-            tsbDeleteTorrent.ImageIndex = 6;
-            tsbManageConnection.Text = lang.GetTranslation("Manage connections") + "...";
+            InitializeToolbar();
+            InitializeTorrentListMenu();
 
             // Set up tabs
-            generalTab.Text = lang.GetTranslation("General");
-            trackersTab.Text = lang.GetTranslation("Trackers");
-            peersTab.Text = lang.GetTranslation("Peers");
-            filesTab.Text = lang.GetTranslation("Files");
+            generalTab.Text = _lang.GetTranslation("General");
+            trackersTab.Text = _lang.GetTranslation("Trackers");
+            peersTab.Text = _lang.GetTranslation("Peers");
+            filesTab.Text = _lang.GetTranslation("Files");
 
             // Set up state tree view
-            stateTreeView.Nodes.Add("all", lang.GetTranslation("All torrents"), "tr_t_all", "tr_t_all");
-            stateTreeView.Nodes.Add("downloading", lang.GetTranslation("Downloading"), "tr_t_down", "tr_t_down");
-            stateTreeView.Nodes.Add("completed", lang.GetTranslation("Completed"), "tr_t_up", "tr_t_up");
-            stateTreeView.Nodes.Add("active", lang.GetTranslation("Active"), "tr_active", "tr_active");
-            stateTreeView.Nodes.Add("inactive", lang.GetTranslation("Inactive"), "tr_t_busy", "tr_t_busy");
-            stateTreeView.Nodes.Add("stopped", lang.GetTranslation("Stopped"), "tr_t_pause", "tr_t_pause");
-            stateTreeView.Nodes.Add("error", lang.GetTranslation("Error"), "tr_t_error", "tr_t_error");
-            stateTreeView.Nodes.Add("waiting", lang.GetTranslation("Waiting"), "tr_queue", "tr_queue");
+            stateTreeView.Nodes.Add("all", _lang.GetTranslation("All torrents"), "tr_t_all", "tr_t_all");
+            stateTreeView.Nodes.Add("downloading", _lang.GetTranslation("Downloading"), "tr_t_down", "tr_t_down");
+            stateTreeView.Nodes.Add("completed", _lang.GetTranslation("Completed"), "tr_t_up", "tr_t_up");
+            stateTreeView.Nodes.Add("active", _lang.GetTranslation("Active"), "tr_active", "tr_active");
+            stateTreeView.Nodes.Add("inactive", _lang.GetTranslation("Inactive"), "tr_t_busy", "tr_t_busy");
+            stateTreeView.Nodes.Add("stopped", _lang.GetTranslation("Stopped"), "tr_t_pause", "tr_t_pause");
+            stateTreeView.Nodes.Add("error", _lang.GetTranslation("Error"), "tr_t_error", "tr_t_error");
+            stateTreeView.Nodes.Add("waiting", _lang.GetTranslation("Waiting"), "tr_queue", "tr_queue");
 
-            tsConfigureTorrentColumns.Text = lang.GetTranslation("Setup columns") + "...";
-            tsConfigurePeerColumns.Text = lang.GetTranslation("Setup columns") + "...";
+            tsConfigurePeerColumns.Text = _lang.GetTranslation("Setup columns") + LanguageLoader.Dots;
 
             // Set up tracker list view
             trackerListView.View = View.Details;
@@ -114,7 +100,7 @@ namespace QB_Remote_GUI.GUI
             trackerListView.GridLines = true;
 
             urlColumn.Text = "URL";
-            statusColumn2.Text = lang.GetTranslation("Status");
+            statusColumn2.Text = _lang.GetTranslation("Status");
 
             urlColumn.Width = 400;
             statusColumn2.Width = 100;
@@ -185,14 +171,17 @@ namespace QB_Remote_GUI.GUI
 
             foreach (var connection in _connections.OrderByDescending(c => c.LastUsed))
             {
-                var menuItem = new ToolStripMenuItem(connection.Name);
-                menuItem.Tag = connection;
-                menuItem.Click += async (s, e) => await ConnectToProfile((ConnectionProfile)((ToolStripMenuItem)s).Tag);
-                tsbspConnect.DropDownItems.Insert(0, menuItem);
-                menuItem = new ToolStripMenuItem(connection.Name);
-                menuItem.Tag = connection;
-                menuItem.Click += async (s, e) => await ConnectToProfile((ConnectionProfile)((ToolStripMenuItem)s).Tag);
-                menuitemConnect.DropDownItems.Insert(0, menuItem);
+                foreach (var itemCollection in (ReadOnlySpan<ToolStripItemCollection>)[menuitemConnect.DropDownItems, tsbspConnect.DropDownItems])
+                {
+                    var menuItem = new ToolStripMenuItem(connection.Name);
+                    menuItem.Tag = connection;
+                    menuItem.Click += async (s, _) =>
+                    {
+                        if (s is ToolStripMenuItem { Tag: ConnectionProfile connectionProfile })
+                            await ConnectToProfile(connectionProfile);
+                    };
+                    itemCollection.Insert(0, menuItem);
+                }
             }
         }
 
@@ -293,9 +282,8 @@ namespace QB_Remote_GUI.GUI
                 // Update torrents
                 foreach (var (hash, torrent) in mainData.Torrents)
                 {
-                    if (_torrents.ContainsKey(hash))
+                    if (_torrents.TryGetValue(hash, out var existingTorrent))
                     {
-                        var existingTorrent = _torrents[hash];
                         existingTorrent.Update(torrent);
                     }
                     else
@@ -327,6 +315,7 @@ namespace QB_Remote_GUI.GUI
         {
             if (_selectedTorrent == null || _client == null) return;
             var hash = _selectedTorrent.Hash;
+            if (hash == null) return;
 
             try
             {
@@ -362,7 +351,7 @@ namespace QB_Remote_GUI.GUI
         private void UpdateTorrentList()
         {
             var filteredTorrents = FilterTorrents();
-            _torrentListViewManager?.UpdateTorrents(filteredTorrents);
+            _torrentListViewManager.UpdateTorrents(filteredTorrents);
         }
 
         private Dictionary<string, TorrentInfo> FilterTorrents()
@@ -375,7 +364,7 @@ namespace QB_Remote_GUI.GUI
                 "downloading" => _torrents.Where(t => t.Value.State == "downloading").ToDictionary(t => t.Key, t => t.Value),
                 "completed" => _torrents.Where(t => t.Value.Progress >= 1).ToDictionary(t => t.Key, t => t.Value),
                 "active" => _torrents.Where(t => t.Value.DownloadSpeed > 0 || t.Value.UploadSpeed > 0).ToDictionary(t => t.Key, t => t.Value),
-                "inactive" => _torrents.Where(t => t.Value.DownloadSpeed == 0 && t.Value.UploadSpeed == 0).ToDictionary(t => t.Key, t => t.Value),
+                "inactive" => _torrents.Where(t => t.Value is { DownloadSpeed: 0, UploadSpeed: 0 }).ToDictionary(t => t.Key, t => t.Value),
                 "stopped" => _torrents.Where(t => t.Value.State == "pausedUP").ToDictionary(t => t.Key, t => t.Value),
                 "error" => _torrents.Where(t => t.Value.State == "error").ToDictionary(t => t.Key, t => t.Value),
                 "waiting" => _torrents.Where(t => t.Value.State == "waiting").ToDictionary(t => t.Key, t => t.Value),
@@ -415,52 +404,52 @@ namespace QB_Remote_GUI.GUI
 
             UpdateControlState();
 
-            if (torrentListView.SelectedItems.Count == 1)
-            {
-                _selectedTorrent = torrentListView.SelectedItems[0].Tag as TorrentInfo;
-                if (_selectedTorrent == null) return;
-
-                try
-                {
-                    // Update general properties
-                    var properties = await _client.GetTorrentPropertiesAsync(_selectedTorrent.Hash);
-                    torrentInfoView1.Render(_selectedTorrent, properties);
-
-                    var pieces = await _client.GetTorrentPiecesStatesAsync(_selectedTorrent.Hash);
-                    torrentPieceView1.Render([.. pieces]);
-
-                    // Update trackers
-                    var trackers = await _client.GetTorrentTrackersAsync(_selectedTorrent.Hash);
-                    trackerListView.BeginUpdate();
-                    trackerListView.Items.Clear();
-                    foreach (var tracker in trackers)
-                    {
-                        var item = new ListViewItem(tracker.Url);
-                        item.SubItems.Add(tracker.Status.ToString());
-                        trackerListView.Items.Add(item);
-                    }
-                    trackerListView.EndUpdate();
-
-                    // Reset peer data and update peers
-                    _lastPeerRid = 0;
-                    _peers.Clear();
-                    await UpdatePeerList();
-
-                    // Update files
-                    var files = await _client.GetTorrentContentsAsync(_selectedTorrent.Hash);
-                    _fileListViewManager?.UpdateFileList(files, _selectedTorrent.Hash);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"获取种子详情失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-            else
+            if (torrentListView.SelectedItems.Count != 1)
             {
                 _selectedTorrent = null;
                 trackerListView.Items.Clear();
                 peerListView.Items.Clear();
-                _fileListViewManager?.ClearFileList();
+                _fileListViewManager.ClearFileList();
+                return;
+            }
+
+            _selectedTorrent = torrentListView.SelectedItems[0].Tag as TorrentInfo;
+            if (_selectedTorrent?.Hash == null) return;
+
+            try
+            {
+                // Update general properties
+                var properties = await _client.GetTorrentPropertiesAsync(_selectedTorrent.Hash);
+                torrentInfoView1.Render(_selectedTorrent, properties);
+
+                var pieces = await _client.GetTorrentPiecesStatesAsync(_selectedTorrent.Hash);
+                torrentPieceView1.Render([.. pieces]);
+
+                // Update trackers
+                var trackers = await _client.GetTorrentTrackersAsync(_selectedTorrent.Hash);
+                trackerListView.BeginUpdate();
+                trackerListView.Items.Clear();
+                foreach (var tracker in trackers)
+                {
+                    var item = new ListViewItem(tracker.Url);
+                    item.SubItems.Add(tracker.Status.ToString());
+                    trackerListView.Items.Add(item);
+                }
+
+                trackerListView.EndUpdate();
+
+                // Reset peer data and update peers
+                _lastPeerRid = 0;
+                _peers.Clear();
+                await UpdatePeerList();
+
+                // Update files
+                var files = await _client.GetTorrentContentsAsync(_selectedTorrent.Hash);
+                _fileListViewManager?.UpdateFileList(files, _selectedTorrent.Hash);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"获取种子详情失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -522,13 +511,11 @@ namespace QB_Remote_GUI.GUI
         private async void ManageConnections(object sender, EventArgs e)
         {
             using var form = new ConnectionManager(_connections);
-            if (form.ShowDialog() == DialogResult.OK)
+            if (form.ShowDialog() != DialogResult.OK) return;
+            SyncFromModifiedConnections(form.DuplicatedConnections);
+            if (!_isConnected && form.SelectedConnection != null)
             {
-                SyncFromModifiedConnections(form.DuplicatedConnections);
-                if (!_isConnected && form.SelectedConnection != null)
-                {
-                    await ConnectToProfile(form.SelectedConnection);
-                }
+                await ConnectToProfile(form.SelectedConnection);
             }
         }
 
@@ -621,29 +608,29 @@ namespace QB_Remote_GUI.GUI
         {
             using var form = new ListViewColumnSelector(torrentListView, _torrentListViewManager.GetColumnConfig());
             if (form.ShowDialog() != DialogResult.OK) return;
-            _torrentListViewManager?.SetColumnConfig(form.SelectedColumns);
-            _torrentListViewManager?.SaveColumnConfig();
+            _torrentListViewManager.SetColumnConfig(form.SelectedColumns);
+            _torrentListViewManager.SaveColumnConfig();
         }
 
         private void ConfigurePeerListViewColumns(object sender, EventArgs e)
         {
             using var form = new ListViewColumnSelector(peerListView, _peerListViewManager.GetColumnConfig());
             if (form.ShowDialog() != DialogResult.OK) return;
-            _peerListViewManager?.SetColumnConfig(form.SelectedColumns);
-            _peerListViewManager?.SaveColumnConfig();
+            _peerListViewManager.SetColumnConfig(form.SelectedColumns);
+            _peerListViewManager.SaveColumnConfig();
         }
 
         private void ConfigureFileListViewColumns(object sender, EventArgs e)
         {
             using var form = new ListViewColumnSelector(fileListView, _fileListViewManager.GetColumnConfig());
             if (form.ShowDialog() != DialogResult.OK) return;
-            _fileListViewManager?.SetColumnConfig(form.SelectedColumns);
-            _fileListViewManager?.SaveColumnConfig();
+            _fileListViewManager.SetColumnConfig(form.SelectedColumns);
+            _fileListViewManager.SaveColumnConfig();
         }
 
-        private async void TimerSync_Tick(object sender, EventArgs e)
+        private void TimerSync_Tick(object sender, EventArgs e)
         {
-            await SyncData();
+            _ = SyncData();
         }
 
         private async Task UpdatePeerList()
@@ -687,7 +674,7 @@ namespace QB_Remote_GUI.GUI
                 }
 
                 // Update the ListView
-                _peerListViewManager?.UpdatePeers(_peers.Values);
+                _peerListViewManager.UpdatePeers(_peers.Values);
             }
             catch (Exception ex)
             {

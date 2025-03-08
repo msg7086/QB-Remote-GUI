@@ -99,6 +99,26 @@ namespace QB_Remote_GUI.GUI
             timerSync = new System.Windows.Forms.Timer(components);
             imgFiles = new ImageList(components);
             imgToolStrip = new ImageList(components);
+            tsTorrentOpen = new ToolStripMenuItem();
+            tsTorrentOpenFolder = new ToolStripMenuItem();
+            tsTorrentSep1 = new ToolStripSeparator();
+            tsTorrentStart = new ToolStripMenuItem();
+            tsTorrentForceStart = new ToolStripMenuItem();
+            tsTorrentStop = new ToolStripMenuItem();
+            tsTorrentRemove = new ToolStripMenuItem();
+            tsTorrentRemoveData = new ToolStripMenuItem();
+            tsTorrentSep2 = new ToolStripSeparator();
+            tsTorrentQueue = new ToolStripMenuItem();
+            tsTorrentReannounce = new ToolStripMenuItem();
+            tsTorrentVerify = new ToolStripMenuItem();
+            tsTorrentCopyMagnet = new ToolStripMenuItem();
+            tsTorrentRelocate = new ToolStripMenuItem();
+            tsTorrentLabels = new ToolStripMenuItem();
+            tsTorrentRename = new ToolStripMenuItem();
+            tsTorrentSep3 = new ToolStripSeparator();
+            tsTorrentSep4 = new ToolStripSeparator();
+            tsTorrentProperties = new ToolStripMenuItem();
+            imgMenu = new ImageList(components);
             menuStrip.SuspendLayout();
             toolStrip.SuspendLayout();
             statusStrip.SuspendLayout();
@@ -403,15 +423,15 @@ namespace QB_Remote_GUI.GUI
             // 
             // contextMenuTorrentListView
             // 
-            contextMenuTorrentListView.Items.AddRange(new ToolStripItem[] { tsConfigureTorrentColumns });
+            contextMenuTorrentListView.Items.AddRange(new ToolStripItem[] { tsTorrentOpen, tsTorrentOpenFolder, tsTorrentSep1, tsTorrentStart, tsTorrentForceStart, tsTorrentStop, tsTorrentRemove, tsTorrentRemoveData, tsTorrentSep2, tsTorrentQueue, tsTorrentReannounce, tsTorrentVerify, tsTorrentCopyMagnet, tsTorrentRelocate, tsTorrentLabels, tsTorrentRename, tsTorrentSep3, tsTorrentProperties, tsTorrentSep4, tsConfigureTorrentColumns });
             contextMenuTorrentListView.Name = "contextMenuTorrentListView";
-            contextMenuTorrentListView.Size = new Size(162, 26);
+            contextMenuTorrentListView.Size = new Size(225, 402);
             // 
             // tsConfigureTorrentColumns
             // 
             tsConfigureTorrentColumns.Name = "tsConfigureTorrentColumns";
-            tsConfigureTorrentColumns.Size = new Size(161, 22);
-            tsConfigureTorrentColumns.Text = "Setup columns";
+            tsConfigureTorrentColumns.Size = new Size(224, 22);
+            tsConfigureTorrentColumns.Text = "Setup columns...";
             tsConfigureTorrentColumns.Click += ConfigureTorrentListViewColumns;
             // 
             // imgTorrent
@@ -456,10 +476,10 @@ namespace QB_Remote_GUI.GUI
             // torrentInfoView1
             // 
             torrentInfoView1.AutoScroll = true;
-            torrentInfoView1.Dock = System.Windows.Forms.DockStyle.Fill;
-            torrentInfoView1.Location = new System.Drawing.Point(0, 48);
+            torrentInfoView1.Dock = DockStyle.Fill;
+            torrentInfoView1.Location = new Point(0, 48);
             torrentInfoView1.Name = "torrentInfoView1";
-            torrentInfoView1.Size = new System.Drawing.Size(1039, 299);
+            torrentInfoView1.Size = new Size(1039, 299);
             torrentInfoView1.TabIndex = 1;
             // 
             // torrentPieceView1
@@ -600,6 +620,10 @@ namespace QB_Remote_GUI.GUI
             imgFiles.Images.SetKeyName(0, "tr_dir.png");
             imgFiles.Images.SetKeyName(1, "sui-right.png");
             imgFiles.Images.SetKeyName(2, "sui-down.png");
+            imgFiles.Images.SetKeyName(3, "tr_f_skip.png");
+            imgFiles.Images.SetKeyName(4, "tr_f_mid.png");
+            imgFiles.Images.SetKeyName(5, "tr_f_higher.png");
+            imgFiles.Images.SetKeyName(6, "tr_f_highest.png");
             // 
             // imgToolStrip
             // 
@@ -618,6 +642,130 @@ namespace QB_Remote_GUI.GUI
             imgToolStrip.Images.SetKeyName(9, "tr32_qbconfig.png");
             imgToolStrip.Images.SetKeyName(10, "tr32_config.png");
             imgToolStrip.Images.SetKeyName(11, "tr32_speedlimit.png");
+            // 
+            // tsTorrentOpen
+            // 
+            tsTorrentOpen.Name = "tsTorrentOpen";
+            tsTorrentOpen.Size = new Size(224, 22);
+            tsTorrentOpen.Text = "Open";
+            // 
+            // tsTorrentOpenFolder
+            // 
+            tsTorrentOpenFolder.Name = "tsTorrentOpenFolder";
+            tsTorrentOpenFolder.Size = new Size(224, 22);
+            tsTorrentOpenFolder.Text = "Open containing folder";
+            // 
+            // tsTorrentSep1
+            // 
+            tsTorrentSep1.Name = "tsTorrentSep1";
+            tsTorrentSep1.Size = new Size(221, 6);
+            // 
+            // tsTorrentStart
+            // 
+            tsTorrentStart.Name = "tsTorrentStart";
+            tsTorrentStart.Size = new Size(224, 22);
+            tsTorrentStart.Text = "Start";
+            // 
+            // tsTorrentForceStart
+            // 
+            tsTorrentForceStart.Name = "tsTorrentForceStart";
+            tsTorrentForceStart.Size = new Size(224, 22);
+            tsTorrentForceStart.Text = "Force start";
+            // 
+            // tsTorrentStop
+            // 
+            tsTorrentStop.Name = "tsTorrentStop";
+            tsTorrentStop.Size = new Size(224, 22);
+            tsTorrentStop.Text = "Stop";
+            // 
+            // tsTorrentRemove
+            // 
+            tsTorrentRemove.Name = "tsTorrentRemove";
+            tsTorrentRemove.Size = new Size(224, 22);
+            tsTorrentRemove.Text = "Remove";
+            // 
+            // tsTorrentRemoveData
+            // 
+            tsTorrentRemoveData.Name = "tsTorrentRemoveData";
+            tsTorrentRemoveData.Size = new Size(224, 22);
+            tsTorrentRemoveData.Text = "Remove torrent and Data";
+            // 
+            // tsTorrentSep2
+            // 
+            tsTorrentSep2.Name = "tsTorrentSep2";
+            tsTorrentSep2.Size = new Size(221, 6);
+            // 
+            // tsTorrentQueue
+            // 
+            tsTorrentQueue.Name = "tsTorrentQueue";
+            tsTorrentQueue.Size = new Size(224, 22);
+            tsTorrentQueue.Text = "Queue";
+            // 
+            // tsTorrentReannounce
+            // 
+            tsTorrentReannounce.Name = "tsTorrentReannounce";
+            tsTorrentReannounce.Size = new Size(224, 22);
+            tsTorrentReannounce.Text = "Reannounce";
+            // 
+            // tsTorrentVerify
+            // 
+            tsTorrentVerify.Name = "tsTorrentVerify";
+            tsTorrentVerify.Size = new Size(224, 22);
+            tsTorrentVerify.Text = "Verify";
+            // 
+            // tsTorrentCopyMagnet
+            // 
+            tsTorrentCopyMagnet.Name = "tsTorrentCopyMagnet";
+            tsTorrentCopyMagnet.Size = new Size(224, 22);
+            tsTorrentCopyMagnet.Text = "Copy Magnet Link(s)";
+            // 
+            // tsTorrentRelocate
+            // 
+            tsTorrentRelocate.Name = "tsTorrentRelocate";
+            tsTorrentRelocate.Size = new Size(224, 22);
+            tsTorrentRelocate.Text = "Set data location...";
+            // 
+            // tsTorrentLabels
+            // 
+            tsTorrentLabels.Name = "tsTorrentLabels";
+            tsTorrentLabels.Size = new Size(224, 22);
+            tsTorrentLabels.Text = "Set labels...";
+            // 
+            // tsTorrentRename
+            // 
+            tsTorrentRename.Name = "tsTorrentRename";
+            tsTorrentRename.Size = new Size(224, 22);
+            tsTorrentRename.Text = "Rename";
+            // 
+            // tsTorrentSep3
+            // 
+            tsTorrentSep3.Name = "tsTorrentSep3";
+            tsTorrentSep3.Size = new Size(221, 6);
+            // 
+            // tsTorrentSep4
+            // 
+            tsTorrentSep4.Name = "tsTorrentSep4";
+            tsTorrentSep4.Size = new Size(221, 6);
+            // 
+            // tsTorrentProperties
+            // 
+            tsTorrentProperties.Name = "tsTorrentProperties";
+            tsTorrentProperties.Size = new Size(224, 22);
+            tsTorrentProperties.Text = "Properties...";
+            // 
+            // imgMenu
+            // 
+            imgMenu.ColorDepth = ColorDepth.Depth32Bit;
+            imgMenu.ImageStream = (ImageListStreamer)resources.GetObject("imgMenu.ImageStream");
+            imgMenu.TransparentColor = Color.Transparent;
+            imgMenu.Images.SetKeyName(0, "tr_open.png");
+            imgMenu.Images.SetKeyName(1, "tr_dir.png");
+            imgMenu.Images.SetKeyName(2, "tr_start.png");
+            imgMenu.Images.SetKeyName(3, "tr_forcestart.png");
+            imgMenu.Images.SetKeyName(4, "tr_pause.png");
+            imgMenu.Images.SetKeyName(5, "tr_del.png");
+            imgMenu.Images.SetKeyName(6, "tr_moveup.png");
+            imgMenu.Images.SetKeyName(7, "tr_movedown.png");
             // 
             // MainForm
             // 
@@ -726,5 +874,25 @@ namespace QB_Remote_GUI.GUI
         private ImageList imgFiles;
         private ContextMenuStrip contextMenuFileListView;
         private ToolStripMenuItem tsConfigureFileColumns;
+        private ToolStripMenuItem tsTorrentOpen;
+        private ToolStripMenuItem tsTorrentOpenFolder;
+        private ToolStripSeparator tsTorrentSep1;
+        private ToolStripMenuItem tsTorrentStart;
+        private ToolStripMenuItem tsTorrentForceStart;
+        private ToolStripMenuItem tsTorrentStop;
+        private ToolStripMenuItem tsTorrentRemove;
+        private ToolStripMenuItem tsTorrentRemoveData;
+        private ToolStripSeparator tsTorrentSep2;
+        private ToolStripMenuItem tsTorrentQueue;
+        private ToolStripMenuItem tsTorrentReannounce;
+        private ToolStripMenuItem tsTorrentVerify;
+        private ToolStripMenuItem tsTorrentCopyMagnet;
+        private ToolStripMenuItem tsTorrentRelocate;
+        private ToolStripMenuItem tsTorrentLabels;
+        private ToolStripMenuItem tsTorrentRename;
+        private ToolStripSeparator tsTorrentSep3;
+        private ToolStripMenuItem tsTorrentProperties;
+        private ToolStripSeparator tsTorrentSep4;
+        private ImageList imgMenu;
     }
 }

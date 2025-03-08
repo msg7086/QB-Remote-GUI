@@ -22,7 +22,7 @@ public partial class MainForm
         if (_client == null) return;
 
         using var dialog = new OpenFileDialog();
-        dialog.Filter = lang.GetTranslation("Torrents (*.torrent)|*.torrent|All files (*.*)|*.*");
+        dialog.Filter = _lang.GetTranslation("Torrents (*.torrent)|*.torrent|All files (*.*)|*.*");
         dialog.Multiselect = true; // Add files in sequence
 
         if (dialog.ShowDialog() != DialogResult.OK) return;

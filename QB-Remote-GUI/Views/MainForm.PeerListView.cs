@@ -6,6 +6,7 @@ namespace QB_Remote_GUI.GUI.Views;
 
 public class PeerListViewManager
 {
+    private readonly LanguageLoader _lang;
     private readonly ListView _peerListView;
     private List<ColumnInfo> _columnConfig = null!;
     private const string ConfigPath = "peer_columns.json";
@@ -13,6 +14,7 @@ public class PeerListViewManager
     public PeerListViewManager(ListView peerListView)
     {
         _peerListView = peerListView;
+        _lang = LanguageLoader.Instance;
         InitializeListView();
     }
 
@@ -31,23 +33,17 @@ public class PeerListViewManager
 
     private void LoadOrInitializeColumnConfig()
     {
+        InitializeDefaultColumnConfig();
         try
         {
-            if (!File.Exists(ConfigPath))
-            {
-                InitializeDefaultColumnConfig();
-                return;
-            }
+            if (!File.Exists(ConfigPath)) return;
 
             var json = File.ReadAllText(ConfigPath);
             var storedConfig = System.Text.Json.JsonSerializer.Deserialize<List<ColumnInfo>>(json);
-            if (storedConfig == null)
-            {
-                InitializeDefaultColumnConfig();
-                return;
-            }
+            if (storedConfig == null) return;
 
-            _columnConfig = storedConfig;
+            // Merge stored config with default config
+            _columnConfig = ColumnConfigMerger.MergeColumnConfigs(_columnConfig, storedConfig);
         }
         catch
         {
@@ -57,22 +53,21 @@ public class PeerListViewManager
 
     private void InitializeDefaultColumnConfig()
     {
-        var lang = LanguageLoader.Instance;
         _columnConfig =
         [
             new ColumnInfo { Name = "ipColumn", Text = "IP", Width = 150, IsVisible = true },
-            new ColumnInfo { Name = "portColumn", Text = lang.GetTranslation("Port"), Width = 80, IsVisible = true },
-            new ColumnInfo { Name = "clientColumn", Text = lang.GetTranslation("Client"), Width = 150, IsVisible = true },
-            new ColumnInfo { Name = "flagsColumn", Text = lang.GetTranslation("Flags"), Width = 200, IsVisible = true },
-            new ColumnInfo { Name = "countryColumn", Text = lang.GetTranslation("Country"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "connectionColumn", Text = lang.GetTranslation("Connection"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "progressColumn", Text = lang.GetTranslation("Progress"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "downloadSpeedColumn", Text = lang.GetTranslation("Download speed"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "uploadSpeedColumn", Text = lang.GetTranslation("Upload speed"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "downloadedColumn", Text = lang.GetTranslation("Downloaded"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "uploadedColumn", Text = lang.GetTranslation("Uploaded"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "relevanceColumn", Text = lang.GetTranslation("Relevance"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "filesColumn", Text = lang.GetTranslation("Files"), Width = 100, IsVisible = true }
+            new ColumnInfo { Name = "portColumn", Text = _lang.GetTranslation("Port"), Width = 80, IsVisible = true },
+            new ColumnInfo { Name = "clientColumn", Text = _lang.GetTranslation("Client"), Width = 150, IsVisible = true },
+            new ColumnInfo { Name = "flagsColumn", Text = _lang.GetTranslation("Flags"), Width = 200, IsVisible = true },
+            new ColumnInfo { Name = "countryColumn", Text = _lang.GetTranslation("Country"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "connectionColumn", Text = _lang.GetTranslation("Connection"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "progressColumn", Text = _lang.GetTranslation("Progress"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "downloadSpeedColumn", Text = _lang.GetTranslation("Download speed"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "uploadSpeedColumn", Text = _lang.GetTranslation("Upload speed"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "downloadedColumn", Text = _lang.GetTranslation("Downloaded"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "uploadedColumn", Text = _lang.GetTranslation("Uploaded"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "relevanceColumn", Text = _lang.GetTranslation("Relevance"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "filesColumn", Text = _lang.GetTranslation("Files"), Width = 100, IsVisible = true }
         ];
     }
 

@@ -5,7 +5,8 @@ namespace QB_Remote_GUI.GUI.Utils;
 public sealed class LanguageLoader
 {
     private static LanguageLoader? _instance;
-    private static readonly object _lock = new object();
+    public const string Dots = "...";
+    private static readonly object _lock = new();
     private readonly Dictionary<string, string> _translations = new();
 
     private static readonly string _baseDir = AppDomain.CurrentDomain.BaseDirectory;

@@ -113,8 +113,8 @@ public partial class ListViewColumnSelector : Form
 
 public class ColumnInfo
 {
-    public string? Name { get; set; }
-    public string? Text { get; set; }
+    public required string Name { get; init; }
+    public string? Text { get; init; }
     public int Width { get; set; }
     public bool IsVisible { get; set; }
 }

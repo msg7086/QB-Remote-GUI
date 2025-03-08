@@ -55,12 +55,12 @@ public partial class MainForm
         if (selectedHashes.Count == 0) return;
 
         var message = selectedHashes.Count > 1 ?
-            String.Format(lang.GetTranslation("Are you sure to remove %d selected torrents?"), selectedHashes.Count) :
-            String.Format(lang.GetTranslation("Are you sure to remove torrent '%s'?"), selectedHashes.First());
+            String.Format(_lang.GetTranslation("Are you sure to remove %d selected torrents?"), selectedHashes.Count) :
+            String.Format(_lang.GetTranslation("Are you sure to remove torrent '%s'?"), selectedHashes.First());
 
         var result = MessageBox.Show(
             message,
-            lang.GetTranslation("Remove torrent"),
+            _lang.GetTranslation("Remove torrent"),
             MessageBoxButtons.YesNo,
             MessageBoxIcon.Question,
             MessageBoxDefaultButton.Button2);
@@ -85,12 +85,12 @@ public partial class MainForm
         if (selectedHashes.Count == 0) return;
 
         var message = selectedHashes.Count > 1 ?
-            String.Format(lang.GetTranslation("Are you sure to remove %d selected torrents and all their associated DATA?"), selectedHashes.Count) :
-            String.Format(lang.GetTranslation("Are you sure to remove torrent '%s' and all associated DATA?"), selectedHashes.First());
+            String.Format(_lang.GetTranslation("Are you sure to remove %d selected torrents and all their associated DATA?"), selectedHashes.Count) :
+            String.Format(_lang.GetTranslation("Are you sure to remove torrent '%s' and all associated DATA?"), selectedHashes.First());
 
         var result = MessageBox.Show(
             message,
-            lang.GetTranslation("Remove torrent and Data"),
+            _lang.GetTranslation("Remove torrent and Data"),
             MessageBoxButtons.YesNo,
             MessageBoxIcon.Question,
             MessageBoxDefaultButton.Button2);

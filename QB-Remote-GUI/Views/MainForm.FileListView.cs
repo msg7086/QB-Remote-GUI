@@ -7,6 +7,7 @@ namespace QB_Remote_GUI.GUI.Views;
 
 public class FileListViewManager
 {
+    private readonly LanguageLoader _lang;
     private readonly ListView _fileListView;
     private List<TorrentFileTree>? _fileTree;
     private const int IndentWidth = 20;
@@ -17,7 +18,6 @@ public class FileListViewManager
     private const string ConfigPath = "file_columns.json";
     private string _currentHash = string.Empty;
     private string _lastHash = string.Empty;
-    private LanguageLoader _lang;
 
     public FileListViewManager(ListView fileListView, ImageList imgFiles, bool isSimpleMode = false)
     {
@@ -64,23 +64,18 @@ public class FileListViewManager
 
     private void LoadOrInitializeColumnConfig()
     {
+        InitializeDefaultColumnConfig();
         try
         {
-            if (!File.Exists(ConfigPath))
-            {
-                InitializeDefaultColumnConfig();
-                return;
-            }
+            if (!File.Exists(ConfigPath)) return;
 
             var json = File.ReadAllText(ConfigPath);
             var storedConfig = System.Text.Json.JsonSerializer.Deserialize<List<ColumnInfo>>(json);
             if (storedConfig == null)
-            {
-                InitializeDefaultColumnConfig();
                 return;
-            }
 
-            _columnConfig = storedConfig;
+            // Merge stored config with default config
+            _columnConfig = ColumnConfigMerger.MergeColumnConfigs(_columnConfig, storedConfig);
         }
         catch
         {
@@ -147,14 +142,15 @@ public class FileListViewManager
     private void FileListView_DrawSubItem(object? sender, DrawListViewSubItemEventArgs e)
     {
         // check column index
-        if (e.ColumnIndex != 0 && _fileListView.Columns[e.ColumnIndex].Name != "progressColumn")
+        if (e.ColumnIndex != 0 && 
+            _fileListView.Columns[e.ColumnIndex].Name != "progressColumn" && 
+            _fileListView.Columns[e.ColumnIndex].Name != "priorityColumn")
         {
             e.DrawDefault = true;
             return;
         }
 
         var item = e.Item;
-
         if (item?.Tag is not TorrentFileTree fileTree) return;
 
         // Draw background with selection state
@@ -199,6 +195,36 @@ public class FileListViewManager
             };
             e.Graphics.DrawString(fileTree.BaseName, _fileListView.Font, 
                 item.Selected ? SystemBrushes.HighlightText : Brushes.Black, 
+                textRect, format);
+        }
+        else if (_fileListView.Columns[e.ColumnIndex].Name == "priorityColumn")
+        {
+            var priority = fileTree.Priority;
+            var imageIndex = priority switch
+            {
+                0 => 3,
+                1 => 4,
+                6 => 5,
+                7 => 6,
+                _ => -1
+            };
+
+            if (imageIndex == -1) return;
+            // Draw priority icon
+            var x = e.Bounds.X + 4;
+            var y = e.Bounds.Y + (e.Bounds.Height - 16) / 2;
+            e.Graphics.DrawImage(_imgFiles.Images[imageIndex], x, y);
+
+            // Draw priority text
+            var textRect = e.Bounds with { X = e.Bounds.X + 24, Width = e.Bounds.Width - 24 };
+            var priorityText = _lang.GetTranslation($"Priority {priority}");
+            var format = new StringFormat
+            {
+                FormatFlags = StringFormatFlags.NoWrap,
+                LineAlignment = StringAlignment.Center
+            };
+            e.Graphics.DrawString(priorityText, _fileListView.Font,
+                item.Selected ? SystemBrushes.HighlightText : Brushes.Black,
                 textRect, format);
         }
         else if (_fileListView.Columns[e.ColumnIndex].Name == "progressColumn")
@@ -246,10 +272,7 @@ public class FileListViewManager
     private void FileListView_MouseClick(object? sender, MouseEventArgs e)
     {
         var hit = _fileListView.HitTest(e.Location);
-        if (hit.Item == null) return;
-
-        var fileTree = hit.Item.Tag as TorrentFileTree;
-        if (fileTree == null) return;
+        if (hit.Item?.Tag is not TorrentFileTree fileTree) return;
 
         var x = hit.Item.Bounds.X + fileTree.IndentCount * IndentWidth;
 
@@ -294,8 +317,7 @@ public class FileListViewManager
             var itemsToRemove = new List<ListViewItem>();
             for (int i = itemIndex + 1; i < _fileListView.Items.Count; i++)
             {
-                var childTree = _fileListView.Items[i].Tag as TorrentFileTree;
-                if (childTree == null || childTree.IndentCount <= fileTree.IndentCount)
+                if (_fileListView.Items[i].Tag is not TorrentFileTree childTree || childTree.IndentCount <= fileTree.IndentCount)
                     break;
                 itemsToRemove.Add(_fileListView.Items[i]);
             }
@@ -313,7 +335,7 @@ public class FileListViewManager
     {
         foreach (var item in items)
         {
-            var subItems = new List<string> { item.BaseName };
+            var subItems = new List<string> { "　　" + item.BaseName }; // placeholder for image for auto calculating column width
 
             if (_isSimpleMode)
             {
@@ -472,7 +494,6 @@ public class FileListViewManager
 
     private void FileListView_ColumnWidthChanged(object? sender, ColumnWidthChangedEventArgs e)
     {
-        if (_columnConfig == null) return;
         var column = _fileListView.Columns[e.ColumnIndex];
         var columnInfo = _columnConfig.FirstOrDefault(c => c.Name == column.Name);
         if (columnInfo == null) return;

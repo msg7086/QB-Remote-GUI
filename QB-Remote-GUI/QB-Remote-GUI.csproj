@@ -41,8 +41,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Resources\lang\qbgui.zh">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Resources\lang\transgui.zh">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
