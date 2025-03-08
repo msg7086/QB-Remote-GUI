@@ -57,7 +57,7 @@
             btnNewConnection.Name = "btnNewConnection";
             btnNewConnection.Size = new Size(75, 25);
             btnNewConnection.TabIndex = 1;
-            btnNewConnection.Text = "button1";
+            btnNewConnection.Text = "New";
             btnNewConnection.UseVisualStyleBackColor = true;
             btnNewConnection.Click += BtnNewConnection_Click;
             // 
@@ -67,7 +67,7 @@
             btnRenameConnection.Name = "btnRenameConnection";
             btnRenameConnection.Size = new Size(75, 25);
             btnRenameConnection.TabIndex = 2;
-            btnRenameConnection.Text = "button2";
+            btnRenameConnection.Text = "Rename";
             btnRenameConnection.UseVisualStyleBackColor = true;
             btnRenameConnection.Click += BtnRenameConnection_Click;
             // 
@@ -77,7 +77,7 @@
             btnDeleteConnection.Name = "btnDeleteConnection";
             btnDeleteConnection.Size = new Size(75, 25);
             btnDeleteConnection.TabIndex = 3;
-            btnDeleteConnection.Text = "button3";
+            btnDeleteConnection.Text = "Delete";
             btnDeleteConnection.UseVisualStyleBackColor = true;
             btnDeleteConnection.Click += BtnDeleteConnection_Click;
             // 

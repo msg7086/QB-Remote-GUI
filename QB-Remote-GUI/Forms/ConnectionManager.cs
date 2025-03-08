@@ -99,8 +99,24 @@ public partial class ConnectionManager : Form
 
     private void BtnNewConnection_Click(object? sender, EventArgs e)
     {
-        comboBox1.SelectedItem = null;
-        SelectedConnection = null;
+        var newConnection = SelectedConnection switch
+        {
+            null => GetEmptyConnection(),
+            _ => new ConnectionProfile
+            {
+                Name = SelectedConnection.Name + " - duplicate",
+                Host = SelectedConnection.Host,
+                Port = SelectedConnection.Port,
+                Username = SelectedConnection.Username,
+                Password = SelectedConnection.Password,
+                TimeoutSeconds = SelectedConnection.TimeoutSeconds,
+                UseSsl = SelectedConnection.UseSsl,
+                LastUsed = DateTime.Now
+            }
+        };
+        DuplicatedConnections.Add(newConnection);
+        comboBox1.SelectedItem = newConnection;
+        SelectedConnection = newConnection;
         UpdateConnectionInfo();
         UpdateButtonStates();
         RefreshConnectionsList();
@@ -175,7 +191,13 @@ public partial class ConnectionManager : Form
     private void ConnectionManager_Load(object sender, EventArgs e)
     {
         if (DuplicatedConnections.Count > 0) return;
-        DuplicatedConnections.Add(new ConnectionProfile
+        DuplicatedConnections.Add(GetEmptyConnection());
+        RefreshConnectionsList();
+    }
+
+    private ConnectionProfile GetEmptyConnection()
+    {
+        return new ConnectionProfile
         {
             Name = "Default Connection",
             Host = "localhost",
@@ -185,8 +207,7 @@ public partial class ConnectionManager : Form
             TimeoutSeconds = 30,
             UseSsl = false,
             LastUsed = DateTime.Now
-        });
-        RefreshConnectionsList();
+        };
     }
 
     private void UpdateConnectionOnTextChanged(object? sender, EventArgs e)
