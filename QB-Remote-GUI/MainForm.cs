@@ -1,32 +1,35 @@
-using System.Text.RegularExpressions;
-using QB_Remote_GUI.GUI.Forms;
-using QB_Remote_GUI.GUI.Models;
-using QB_Remote_GUI.GUI.Views;
 using QB_Remote_GUI.API.Clients;
 using QB_Remote_GUI.API.Interfaces;
 using QB_Remote_GUI.API.Models.Sync;
 using QB_Remote_GUI.API.Models.Torrents;
+using QB_Remote_GUI.GUI.Forms;
+using QB_Remote_GUI.GUI.Utils;
+using QB_Remote_GUI.GUI.Views;
+using System.Diagnostics;
+using System.Text.RegularExpressions;
+using QB_Remote_GUI.GUI.Models;
 
 namespace QB_Remote_GUI.GUI
 {
     public partial class MainForm : Form
     {
-        private readonly LanguageLoader lang = LanguageLoader.Instance;
+        private LanguageLoader lang;
         
         private IQBittorrentClient? _client;
         private int _lastRid;
-        private Dictionary<string, TorrentInfo> _torrents = new();
+        private Dictionary<string, TorrentInfo> _torrents = [];
         private TorrentInfo? _selectedTorrent;
         private bool _isConnected;
         private ConnectionProfile? _currentConnection;
+        // hook to trigger event when timerSync is ticked
 
         // Peer data management
-        private Dictionary<string, PeerInfo> _peers = new();
+        private Dictionary<string, PeerInfo> _peers = [];
         private int _lastPeerRid;
 
         // Connection management
         private readonly string _connectionsPath;
-        private readonly List<ConnectionProfile> _connections = new();
+        private readonly List<ConnectionProfile> _connections = [];
 
         // View managers
         private readonly TorrentListViewManager _torrentListViewManager;
@@ -38,6 +41,8 @@ namespace QB_Remote_GUI.GUI
 
         public MainForm()
         {
+            lang = LanguageLoader.GetInstance();
+
             // Set up connections path
             _connectionsPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -221,7 +226,7 @@ namespace QB_Remote_GUI.GUI
 
                     _isConnected = true;
                     UpdateControlState();
-                    await RefreshData();
+                    await CleanRefreshData();
                 }
                 else
                 {
@@ -269,6 +274,8 @@ namespace QB_Remote_GUI.GUI
 
             try
             {
+                if (_lastRid == 0)
+                    Debug.WriteLine(_lastRid);
                 var mainData = await _client.GetMainDataAsync(_lastRid);
                 _lastRid = mainData.Rid;
 
@@ -482,14 +489,13 @@ namespace QB_Remote_GUI.GUI
             return $"{FormatSize(bytesPerSecond)}/s";
         }
 
-        private async Task RefreshData()
+        private async Task CleanRefreshData()
         {
             try
             {
                 _lastRid = 0;
                 _torrents.Clear();
                 await SyncData();
-                timerSync.Start();
             }
             catch (Exception ex)
             {
@@ -516,10 +522,13 @@ namespace QB_Remote_GUI.GUI
         private async void ManageConnections(object sender, EventArgs e)
         {
             using var form = new ConnectionManager(_connections);
-            SyncFromModifiedConnections(form.DuplicatedConnections);
-            if (form.ShowDialog() == DialogResult.OK && !_isConnected && form.SelectedConnection != null)
+            if (form.ShowDialog() == DialogResult.OK)
             {
-                await ConnectToProfile(form.SelectedConnection);
+                SyncFromModifiedConnections(form.DuplicatedConnections);
+                if (!_isConnected && form.SelectedConnection != null)
+                {
+                    await ConnectToProfile(form.SelectedConnection);
+                }
             }
         }
 
@@ -632,7 +641,7 @@ namespace QB_Remote_GUI.GUI
             _fileListViewManager?.SaveColumnConfig();
         }
 
-        private async void timerSync_Tick(object sender, EventArgs e)
+        private async void TimerSync_Tick(object sender, EventArgs e)
         {
             await SyncData();
         }

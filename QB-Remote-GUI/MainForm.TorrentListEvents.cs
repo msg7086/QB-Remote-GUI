@@ -2,11 +2,6 @@
 
 public partial class MainForm
 {
-    private void AddTorrent(object? sender, EventArgs e)
-    {
-        _ = AddTorrent();
-    }
-
     private void StartTorrents(object? sender, EventArgs e)
     {
         _ = StartTorrents();

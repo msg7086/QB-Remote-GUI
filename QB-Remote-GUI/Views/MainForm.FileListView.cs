@@ -17,12 +17,15 @@ public class FileListViewManager
     private const string ConfigPath = "file_columns.json";
     private string _currentHash = string.Empty;
     private string _lastHash = string.Empty;
+    private LanguageLoader _lang;
 
     public FileListViewManager(ListView fileListView, ImageList imgFiles, bool isSimpleMode = false)
     {
         _fileListView = fileListView;
         _imgFiles = imgFiles;
         _isSimpleMode = isSimpleMode;
+        _lang = LanguageLoader.Instance;
+        
         InitializeListView();
     }
 
@@ -37,14 +40,11 @@ public class FileListViewManager
         _fileListView.SmallImageList = _imgFiles;
 
         if (_isSimpleMode)
-        {
-            InitializeSimpleModeColumns();
-        }
+            LoadSimpleColumnConfig();
         else
-        {
             LoadOrInitializeColumnConfig();
-            ApplyColumnConfig();
-        }
+
+        ApplyColumnConfig();
 
         _fileListView.DrawColumnHeader += FileListView_DrawColumnHeader;
         _fileListView.DrawSubItem += FileListView_DrawSubItem;
@@ -52,12 +52,14 @@ public class FileListViewManager
         _fileListView.ColumnWidthChanged += FileListView_ColumnWidthChanged;
     }
 
-    private void InitializeSimpleModeColumns()
+    private void LoadSimpleColumnConfig()
     {
-        _fileListView.Columns.Clear();
-        _fileListView.Columns.Add("Name", 300);
-        _fileListView.Columns.Add("Size", 100);
-        _fileListView.Columns.Add("Priority", 80);
+        _columnConfig =
+        [
+            new ColumnInfo { Name = "nameColumn", Text = _lang.GetTranslation("Name"), Width = 300, IsVisible = true },
+            new ColumnInfo { Name = "sizeColumn", Text = _lang.GetTranslation("Size"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "priorityColumn", Text = _lang.GetTranslation("Priority"), Width = 80, IsVisible = true },
+        ];
     }
 
     private void LoadOrInitializeColumnConfig()
@@ -88,21 +90,18 @@ public class FileListViewManager
 
     private void InitializeDefaultColumnConfig()
     {
-        var lang = LanguageLoader.Instance;
         _columnConfig =
         [
-            new ColumnInfo { Name = "nameColumn", Text = lang.GetTranslation("Name"), Width = 300, IsVisible = true },
-            new ColumnInfo { Name = "sizeColumn", Text = lang.GetTranslation("Size"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "progressColumn", Text = lang.GetTranslation("Progress"), Width = 100, IsVisible = true },
-            new ColumnInfo { Name = "priorityColumn", Text = lang.GetTranslation("Priority"), Width = 80, IsVisible = true },
-            new ColumnInfo { Name = "availabilityColumn", Text = lang.GetTranslation("Availability"), Width = 100, IsVisible = true }
+            new ColumnInfo { Name = "nameColumn", Text = _lang.GetTranslation("Name"), Width = 300, IsVisible = true },
+            new ColumnInfo { Name = "sizeColumn", Text = _lang.GetTranslation("Size"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "progressColumn", Text = _lang.GetTranslation("Progress"), Width = 100, IsVisible = true },
+            new ColumnInfo { Name = "priorityColumn", Text = _lang.GetTranslation("Priority"), Width = 80, IsVisible = true },
+            new ColumnInfo { Name = "availabilityColumn", Text = _lang.GetTranslation("Availability"), Width = 100, IsVisible = true }
         ];
     }
 
     private void ApplyColumnConfig()
     {
-        if (_isSimpleMode) return;
-
         _fileListView.BeginUpdate();
         try
         {
@@ -473,6 +472,7 @@ public class FileListViewManager
 
     private void FileListView_ColumnWidthChanged(object? sender, ColumnWidthChangedEventArgs e)
     {
+        if (_columnConfig == null) return;
         var column = _fileListView.Columns[e.ColumnIndex];
         var columnInfo = _columnConfig.FirstOrDefault(c => c.Name == column.Name);
         if (columnInfo == null) return;

@@ -78,20 +78,25 @@ public class AddTorrentOptions
     /// <summary>
     /// Set torrent download speed limit in bytes/second
     /// </summary>
-    public long? DownloadLimit { get; set; }
+    public int? DownloadLimit { get; set; }
 
     /// <summary>
     /// Set torrent upload speed limit in bytes/second
     /// </summary>
-    public long? UploadLimit { get; set; }
+    public int? UploadLimit { get; set; }
 
     /// <summary>
     /// Set torrent share ratio limit
     /// </summary>
-    public float? RatioLimit { get; set; }
+    public double? RatioLimit { get; set; }
 
     /// <summary>
     /// Set torrent seeding time limit in minutes
     /// </summary>
-    public long? SeedingTimeLimit { get; set; }
+    public int? SeedingTimeLimit { get; set; }
+
+    /// <summary>
+    /// Set torrent inactive seeding time limit in minutes
+    /// </summary>
+    public int? InactiveSeedingTimeLimit { get; set; }
 } 

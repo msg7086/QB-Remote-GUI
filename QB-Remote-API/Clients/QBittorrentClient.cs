@@ -268,8 +268,10 @@ public class QBittorrentClient : IQBittorrentClient, IDisposable
             content.Add(new StringContent(options.RatioLimit.Value.ToString(CultureInfo.InvariantCulture)), "ratioLimit");
         if (options.SeedingTimeLimit.HasValue)
             content.Add(new StringContent(options.SeedingTimeLimit.Value.ToString()), "seedingTimeLimit");
+        if (options.InactiveSeedingTimeLimit.HasValue)
+            content.Add(new StringContent(options.InactiveSeedingTimeLimit.Value.ToString()), "inactiveSeedingTimeLimit");
 
-        await _httpClient.PostAsync("torrents/add", content, cancellationToken);
+        await _httpClient.PostMultipartAsync("torrents/add", content, cancellationToken);
     }
 
     /// <inheritdoc />

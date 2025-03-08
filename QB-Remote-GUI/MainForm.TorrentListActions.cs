@@ -1,6 +1,4 @@
-﻿using QB_Remote_GUI.API.Models.Torrents;
-
-namespace QB_Remote_GUI.GUI;
+﻿namespace QB_Remote_GUI.GUI;
 
 public partial class MainForm
 {
@@ -11,37 +9,6 @@ public partial class MainForm
             .Cast<ListViewItem>()
             .Select(item => item.Name)
             .ToList();
-    }
-
-    private async Task AddTorrent()
-    {
-        if (_client == null) return;
-
-        using var dialog = new OpenFileDialog();
-        dialog.Filter = lang.GetTranslation("Torrents (*.torrent)|*.torrent|All files (*.*)|*.*");
-        dialog.Multiselect = true;
-
-        if (dialog.ShowDialog() == DialogResult.OK)
-        {
-            try
-            {
-                var torrentFiles = new List<byte[]>();
-                foreach (var file in dialog.FileNames)
-                {
-                    torrentFiles.Add(await File.ReadAllBytesAsync(file));
-                }
-
-                await _client.AddTorrentAsync(new AddTorrentOptions
-                {
-                    TorrentFiles = torrentFiles,
-                    Stopped = true
-                });
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"添加种子失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
     }
 
     private async Task StartTorrents()
