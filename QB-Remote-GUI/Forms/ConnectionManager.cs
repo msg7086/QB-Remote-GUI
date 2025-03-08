@@ -8,7 +8,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using QB_Remote_GUI.GUI.Models;
+using QB_Remote_GUI.GUI.Utils;
 
 namespace QB_Remote_GUI.GUI.Forms
 {
